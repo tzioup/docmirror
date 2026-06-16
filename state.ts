@@ -1,0 +1,112 @@
+import type {
+  RunManifest,
+  RunConfig,
+  PageResult,
+  PlatformDetection,
+  DiscoveryMethod,
+  QualitySummary,
+} from "./types.ts";
+import { join } from "node:path";
+import { existsSync, renameSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
+
+const MANIFEST_FILE = "run.json";
+const MANIFEST_VERSION = "1.0.0";
+
+export function initManifest(
+  config: RunConfig,
+  discoveryMethod: DiscoveryMethod,
+  platform: PlatformDetection,
+): RunManifest {
+  const { jinaApiKey, firecrawlApiKey, llmApiKey, llmBaseUrl, ...safeConfig } = config;
+  const name =
+    config.name || new URL(config.url).hostname.replace(/^www\./, "");
+
+  return {
+    version: MANIFEST_VERSION,
+    url: config.url,
+    name,
+    startedAt: new Date().toISOString(),
+    discoveryMethod,
+    platform,
+    pages: [],
+    config: safeConfig,
+  };
+}
+
+export function updateManifest(
+  manifest: RunManifest,
+  updates: Partial<RunManifest>,
+): RunManifest {
+  return Object.assign(manifest, updates);
+}
+
+export function addPageResult(
+  manifest: RunManifest,
+  result: PageResult,
+): void {
+  manifest.pages.push(result);
+}
+
+export function saveManifest(
+  manifest: RunManifest,
+  outputDir: string,
+): void {
+  mkdirSync(outputDir, { recursive: true });
+  const target = join(outputDir, MANIFEST_FILE);
+  const tmp = target + ".tmp";
+  writeFileSync(tmp, JSON.stringify(manifest, null, 2));
+  renameSync(tmp, target);
+}
+
+export function loadManifest(outputDir: string): RunManifest | null {
+  const target = join(outputDir, MANIFEST_FILE);
+  if (!existsSync(target)) return null;
+
+  try {
+    const content = readFileSync(target, "utf-8");
+    return JSON.parse(content) as RunManifest;
+  } catch {
+    return null;
+  }
+}
+
+export function computeQualitySummary(manifest: RunManifest): QualitySummary {
+  const okPages = manifest.pages.filter((p) => p.status === "ok");
+  const total = okPages.length;
+  const flagCounts: Record<string, number> = {};
+  let clean = 0;
+
+  for (const page of okPages) {
+    if (!page.flags || page.flags.length === 0) {
+      clean++;
+    } else {
+      for (const f of page.flags) {
+        flagCounts[f] = (flagCounts[f] || 0) + 1;
+      }
+    }
+  }
+
+  return {
+    total,
+    clean,
+    cleanPct: total > 0 ? Math.round((clean / total) * 1000) / 10 : 100,
+    flagCounts,
+  };
+}
+
+export function getResumeState(
+  manifest: RunManifest,
+): { completed: string[]; pending: string[] } {
+  const completed: string[] = [];
+  const pending: string[] = [];
+
+  for (const page of manifest.pages) {
+    if (page.status === "ok") {
+      completed.push(page.url);
+    } else {
+      pending.push(page.url);
+    }
+  }
+
+  return { completed, pending };
+}
