@@ -64,28 +64,77 @@ function filterUrls(urls: string[], baseUrl: string, config: RunConfig): string[
   return filtered;
 }
 
-async function tryLlmsFullTxt(baseUrl: string): Promise<{ fullContent: string } | null> {
-  const url = `${baseUrl.replace(/\/$/, "")}/llms-full.txt`;
-  log("Trying /llms-full.txt...");
+/**
+ * Is this "full content" actually just an index of links?
+ *
+ * Some sites publish an llms.txt-shaped link list AT the llms-full.txt path.
+ * Measured case: elevenlabs.io/docs/llms-full.txt is 189 KB of
+ * `- [Title](url): description` lines — 13,433 words, so it sails past a
+ * word-count gate, but contains no documentation at all. Accepting it produced
+ * a corpus with 9 headings and zero code blocks that looked like a successful
+ * run. That is the worst failure shape available here: silent, and committed.
+ *
+ * The discriminator is line shape, not size. Real full content is prose and
+ * code in paragraphs; an index is one link per line.
+ */
+function looksLikeLinkIndex(text: string): { isIndex: boolean; ratio: number } {
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  if (lines.length === 0) return { isIndex: false, ratio: 0 };
+  const linkLines = lines.filter((l) => /^[-*]\s*\[[^\]]*\]\([^)]*\)/.test(l)).length;
+  const ratio = linkLines / lines.length;
+  return { isIndex: ratio > 0.5, ratio };
+}
+
+async function probeLlmsFull(url: string): Promise<string | null> {
   try {
     const res = await timedFetch(url);
     if (!res.ok) return null;
     const text = await res.text();
-    if (text.length > 500 && looksLikeMarkdown(text)) {
-      // Require substantive content — reject stub landing pages
-      const h2PlusCount = (text.match(/^#{2,6}\s/gm) || []).length;
-      const wordCount = text.split(/\s+/).length;
-      if (h2PlusCount < 3 || wordCount < 1000) {
-        log(`llms-full.txt too thin (${h2PlusCount} headings, ${wordCount} words) — skipping`);
-        return null;
-      }
-      log(`Found llms-full.txt (${text.length} chars, ${h2PlusCount} headings, ${wordCount} words)`);
-      return { fullContent: text };
+    if (text.length <= 500 || !looksLikeMarkdown(text)) return null;
+
+    // Require substantive content — reject stub landing pages
+    const h2PlusCount = (text.match(/^#{2,6}\s/gm) || []).length;
+    const wordCount = text.split(/\s+/).length;
+    if (h2PlusCount < 3 || wordCount < 1000) {
+      log(`${url} too thin (${h2PlusCount} headings, ${wordCount} words) — skipping`);
+      return null;
     }
-    return null;
+
+    const { isIndex, ratio } = looksLikeLinkIndex(text);
+    if (isIndex) {
+      log(`${url} is a link index (${(ratio * 100).toFixed(0)}% link lines), not full content — skipping`);
+      return null;
+    }
+
+    log(`Found ${url} (${text.length} chars, ${h2PlusCount} headings, ${wordCount} words)`);
+    return text;
   } catch {
     return null;
   }
+}
+
+async function tryLlmsFullTxt(baseUrl: string): Promise<{ fullContent: string } | null> {
+  log("Trying /llms-full.txt...");
+
+  // Probe BOTH the given path and the origin root. Neither alone is right:
+  // measured, bun.sh publishes at /docs/llms-full.txt (and nothing at the
+  // root), while hono.dev and vitest.dev publish at the root and 404 under
+  // their docs path. Probing only path-relative made vitest link-crawl 195
+  // pages over 213 seconds instead of taking one free GET.
+  const trimmed = baseUrl.replace(/\/$/, "");
+  const candidates = [`${trimmed}/llms-full.txt`];
+  try {
+    const originCandidate = `${new URL(baseUrl).origin}/llms-full.txt`;
+    if (!candidates.includes(originCandidate)) candidates.push(originCandidate);
+  } catch {
+    // Unparseable base URL — the path-relative candidate is all we have.
+  }
+
+  for (const candidate of candidates) {
+    const found = await probeLlmsFull(candidate);
+    if (found) return { fullContent: found };
+  }
+  return null;
 }
 
 function looksLikeMarkdown(text: string): boolean {

@@ -57,6 +57,7 @@ export type FetchMethod =
   | "content-negotiation"
   | "md-suffix"
   | "rtd-sources"
+  | "local-html"
   | "jina";
 
 export interface PlatformDetection {
