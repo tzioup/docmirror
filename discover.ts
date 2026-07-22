@@ -174,7 +174,16 @@ async function tryLlmsTxt(baseUrl: string, config: RunConfig): Promise<string[]>
 
 async function trySitemap(baseUrl: string, config: RunConfig): Promise<string[]> {
   const base = baseUrl.replace(/\/$/, "");
-  const candidates = [`${base}/sitemap.xml`, `${base}/sitemap_index.xml`];
+  // `sitemap-index.xml` (hyphen) is not a typo duplicate of `sitemap_index.xml`
+  // (underscore) — both spellings are in the wild and a site publishing only the
+  // hyphenated form was invisible to discovery. Measured: docs.astro.build
+  // 404s on sitemap.xml and sitemap_index.xml, 200s on sitemap-index.xml, which
+  // made the whole source fail with "no compiled output".
+  const candidates = [
+    `${base}/sitemap.xml`,
+    `${base}/sitemap_index.xml`,
+    `${base}/sitemap-index.xml`,
+  ];
   log("Trying sitemap.xml...");
 
   for (const sitemapUrl of candidates) {
