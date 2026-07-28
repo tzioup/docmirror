@@ -1,0 +1,406 @@
+{
+  "question_set_version": "1.0.0",
+  "model_requested": "sonnet",
+  "records": [
+    {
+      "arm": "frontdoor",
+      "question_id": "vitest-browser-api-port",
+      "corpus": "vitest",
+      "answer": "The default port for `browser.api` in Vitest is **63315**. Vitest assigns this port by default to avoid conflicts with the development server, allowing both to run in parallel.\n\nSources:\n- [Vitest browser.api config](https://vitest.dev/config/browser/api)",
+      "error": null,
+      "duration_ms": 12540,
+      "total_cost_usd": 0.18785439999999998,
+      "num_turns": 4,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 8,
+      "output_tokens": 446,
+      "cache_creation_input_tokens": 25299,
+      "cache_read_input_tokens": 73428,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "frontdoor",
+      "question_id": "vitest-browser-viewport",
+      "corpus": "vitest",
+      "answer": "Default: `{ width: 414, height: 896 }`.\n\nSources:\n- [browser.viewport | Config | Vitest](https://vitest.dev/config/browser/viewport)",
+      "error": null,
+      "duration_ms": 19714,
+      "total_cost_usd": 0.10733099999999998,
+      "num_turns": 5,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 10,
+      "output_tokens": 499,
+      "cache_creation_input_tokens": 5716,
+      "cache_read_input_tokens": 119120,
+      "models_used": [
+        "claude-sonnet-5",
+        "claude-haiku-4-5-20251001"
+      ]
+    },
+    {
+      "arm": "frontdoor",
+      "question_id": "vitest-diff-maxdepth",
+      "corpus": "vitest",
+      "answer": "**`diff.maxDepth`** default is **20** — but when comparing values of **different types**, the default is **8**.\n\nSources:\n- [Vitest — diff.maxDepth](https://vitest.dev/config/diff)",
+      "error": null,
+      "duration_ms": 12875,
+      "total_cost_usd": 0.0717322,
+      "num_turns": 4,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 8,
+      "output_tokens": 432,
+      "cache_creation_input_tokens": 4870,
+      "cache_read_input_tokens": 93944,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "frontdoor",
+      "question_id": "vitest-maxconcurrency",
+      "corpus": "vitest",
+      "answer": "Default `maxConcurrency` is **5**, set via the CLI flag `--max-concurrency` (also accepted as `--maxConcurrency`).\n\nSources:\n- [maxConcurrency | Config | Vitest](https://vitest.dev/config/maxconcurrency)",
+      "error": null,
+      "duration_ms": 24349,
+      "total_cost_usd": 0.1232884,
+      "num_turns": 6,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 12,
+      "output_tokens": 646,
+      "cache_creation_input_tokens": 6109,
+      "cache_read_input_tokens": 145878,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "frontdoor",
+      "question_id": "vitest-advancetimedelta",
+      "corpus": "vitest",
+      "answer": "`fakeTimers.advanceTimeDelta` defaults to `20` (ms). It's only relevant when `fakeTimers.shouldAdvanceTime` is set to `true` — it controls how much mocked time advances per real-time interval.",
+      "error": null,
+      "duration_ms": 15938,
+      "total_cost_usd": 0.07465129999999999,
+      "num_turns": 4,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 8,
+      "output_tokens": 501,
+      "cache_creation_input_tokens": 5095,
+      "cache_read_input_tokens": 94081,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "frontdoor",
+      "question_id": "vitest-expect-poll",
+      "corpus": "vitest",
+      "answer": "`expect.poll.interval` defaults to **50ms**, and `expect.poll.timeout` defaults to **1000ms**.\n\nSources:\n- [expect | Config | Vitest](https://vitest.dev/config/expect)",
+      "error": null,
+      "duration_ms": 26182,
+      "total_cost_usd": 0.12280100000000002,
+      "num_turns": 6,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 12,
+      "output_tokens": 638,
+      "cache_creation_input_tokens": 6001,
+      "cache_read_input_tokens": 145740,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "frontdoor",
+      "question_id": "hono-coep-default",
+      "corpus": "hono",
+      "answer": "`crossOriginEmbedderPolicy` sets the header value `require-corp`. It is **not** applied by default (default: `false`).\n\nSources:\n- [Secure Headers Middleware - Hono](https://hono.dev/docs/middleware/builtin/secure-headers)",
+      "error": null,
+      "duration_ms": 8969,
+      "total_cost_usd": 0.058213999999999995,
+      "num_turns": 3,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 6,
+      "output_tokens": 343,
+      "cache_creation_input_tokens": 4652,
+      "cache_read_input_tokens": 68820,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "frontdoor",
+      "question_id": "hono-xframeoptions-default",
+      "corpus": "hono",
+      "answer": "`xFrameOptions` sets the `X-Frame-Options` header to **`SAMEORIGIN`** (this is the default when the option is enabled).\n\nSources:\n- [Secure Headers Middleware - Hono](https://hono.dev/docs/middleware/builtin/secure-headers)",
+      "error": null,
+      "duration_ms": 10421,
+      "total_cost_usd": 0.0577525,
+      "num_turns": 3,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 6,
+      "output_tokens": 351,
+      "cache_creation_input_tokens": 4592,
+      "cache_read_input_tokens": 68805,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "frontdoor",
+      "question_id": "bun-disable-bunfig-autoload",
+      "corpus": "bun",
+      "answer": "The flag is **`--no-compile-autoload-bunfig`** (CLI), corresponding to `autoloadBunfig: false` in the `Bun.build()` JS API's `compile` options — it disables automatic `bunfig.toml` loading for `bun build --compile` standalone executables, e.g. `bun build --compile --no-compile-autoload-bunfig ./app.ts`.\n\nSources:\n- [Single-file executable - Bun](https://bun.com/docs/bundler/executables)\n- [Bun.BuildConfig TypeScript interface | API Reference | Bun](https://bun.com/reference/bun/BuildConfig)",
+      "error": null,
+      "duration_ms": 23978,
+      "total_cost_usd": 0.11471609999999999,
+      "num_turns": 4,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 8,
+      "output_tokens": 707,
+      "cache_creation_input_tokens": 5745,
+      "cache_read_input_tokens": 94597,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "frontdoor",
+      "question_id": "bun-standalone-runtime-flags-env",
+      "corpus": "bun",
+      "answer": "`BUN_OPTIONS` — standalone compiled executables read this environment variable to accept runtime flags (e.g., `BUN_OPTIONS=\"--smol\" ./myapp`) without recompiling.\n\nSources:\n- [Single-file executable - Bun](https://bun.com/docs/bundler/executables)",
+      "error": null,
+      "duration_ms": 20178,
+      "total_cost_usd": 0.1125756,
+      "num_turns": 4,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 8,
+      "output_tokens": 612,
+      "cache_creation_input_tokens": 5769,
+      "cache_read_input_tokens": 94922,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "cache",
+      "question_id": "vitest-browser-api-port",
+      "corpus": "vitest",
+      "answer": "The default port for `browser.api` is **63315**.",
+      "error": null,
+      "duration_ms": 4389,
+      "total_cost_usd": 0.0358348,
+      "num_turns": 2,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 4,
+      "output_tokens": 162,
+      "cache_creation_input_tokens": 2840,
+      "cache_read_input_tokens": 52186,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "cache",
+      "question_id": "vitest-browser-viewport",
+      "corpus": "vitest",
+      "answer": "The default value of `browser.viewport` is `414x896` (i.e., `{ width: 414, height: 896 }`) — the default iframe's viewport.",
+      "error": null,
+      "duration_ms": 6662,
+      "total_cost_usd": 0.0331611,
+      "num_turns": 3,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 6,
+      "output_tokens": 382,
+      "cache_creation_input_tokens": 529,
+      "cache_read_input_tokens": 78457,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "cache",
+      "question_id": "vitest-diff-maxdepth",
+      "corpus": "vitest",
+      "answer": "The default for `diff.maxDepth` is **20**. A different default applies when comparing objects of different types — in that case it's **8**.",
+      "error": null,
+      "duration_ms": 6054,
+      "total_cost_usd": 0.0373155,
+      "num_turns": 3,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 6,
+      "output_tokens": 325,
+      "cache_creation_input_tokens": 1359,
+      "cache_read_input_tokens": 78485,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "cache",
+      "question_id": "vitest-maxconcurrency",
+      "corpus": "vitest",
+      "answer": "Default: `5`. CLI flag: `--maxConcurrency=<number>` (also accepted as `--max-concurrency=<number>`), e.g. `--maxConcurrency=10`.",
+      "error": null,
+      "duration_ms": 6884,
+      "total_cost_usd": 0.0397339,
+      "num_turns": 3,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 6,
+      "output_tokens": 365,
+      "cache_creation_input_tokens": 1661,
+      "cache_read_input_tokens": 78493,
+      "models_used": [
+        "claude-sonnet-5",
+        "claude-haiku-4-5-20251001"
+      ]
+    },
+    {
+      "arm": "cache",
+      "question_id": "vitest-advancetimedelta",
+      "corpus": "vitest",
+      "answer": "Default is `20` (ms). It's only relevant when `fakeTimers.shouldAdvanceTime` is set to `true`.",
+      "error": null,
+      "duration_ms": 7064,
+      "total_cost_usd": 0.0331427,
+      "num_turns": 3,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 6,
+      "output_tokens": 312,
+      "cache_creation_input_tokens": 689,
+      "cache_read_input_tokens": 78529,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "cache",
+      "question_id": "vitest-expect-poll",
+      "corpus": "vitest",
+      "answer": "`expect.poll.interval` defaults to `50` ms, and `expect.poll.timeout` defaults to `1000` ms.",
+      "error": null,
+      "duration_ms": 4697,
+      "total_cost_usd": 0.0255714,
+      "num_turns": 2,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 4,
+      "output_tokens": 197,
+      "cache_creation_input_tokens": 1038,
+      "cache_read_input_tokens": 52228,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "cache",
+      "question_id": "hono-coep-default",
+      "corpus": "hono",
+      "answer": "`crossOriginEmbedderPolicy` sets the `Cross-Origin-Embedder-Policy` header to `require-corp`. It is **not** applied by default (Default: False).",
+      "error": null,
+      "duration_ms": 8206,
+      "total_cost_usd": 0.0394201,
+      "num_turns": 3,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 6,
+      "output_tokens": 367,
+      "cache_creation_input_tokens": 1598,
+      "cache_read_input_tokens": 78657,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "cache",
+      "question_id": "hono-xframeoptions-default",
+      "corpus": "hono",
+      "answer": "Default value: `SAMEORIGIN`. It's also settable to `DENY` (as shown in an example) or `false` to disable the header.",
+      "error": null,
+      "duration_ms": 9211,
+      "total_cost_usd": 0.0369792,
+      "num_turns": 3,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 6,
+      "output_tokens": 302,
+      "cache_creation_input_tokens": 1361,
+      "cache_read_input_tokens": 78474,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "cache",
+      "question_id": "bun-disable-bunfig-autoload",
+      "corpus": "bun",
+      "answer": "**`--no-compile-autoload-bunfig`**\n\nUsed with `bun build --compile`, e.g. `bun build --compile --no-compile-autoload-bunfig ./app.ts --outfile myapp`, to disable automatic `bunfig.toml` loading in the compiled executable.",
+      "error": null,
+      "duration_ms": 7512,
+      "total_cost_usd": 0.03798459999999999,
+      "num_turns": 3,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 6,
+      "output_tokens": 413,
+      "cache_creation_input_tokens": 1249,
+      "cache_read_input_tokens": 78482,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "cache",
+      "question_id": "bun-standalone-runtime-flags-env",
+      "corpus": "bun",
+      "answer": "`BUN_OPTIONS` — standalone compiled executables read this environment variable to receive runtime flags without recompiling (docs also note `BUN_BE_BUN=1` separately, to make the executable act as the full `bun` CLI).",
+      "error": null,
+      "duration_ms": 7233,
+      "total_cost_usd": 0.0381991,
+      "num_turns": 3,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 6,
+      "output_tokens": 442,
+      "cache_creation_input_tokens": 1217,
+      "cache_read_input_tokens": 78507,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    }
+  ]
+}
