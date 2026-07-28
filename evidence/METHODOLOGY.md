@@ -96,6 +96,15 @@ so neither can silently go missing on a re-run.
   the ratio by roughly 10×.
 - `sitemap.xml` is treated as the site's page count. A site that omits pages from
   its sitemap will show a larger mean-markdown-bytes-per-page than reality.
+- **Not every discovered page is fetched, and the tables do not show the gap.**
+  astro discovered 2085 URLs and stripped 1928: **157 pages (7.5%) failed to
+  fetch.** That is derivable from the committed data — `pages_fetched` minus
+  `clean_files`, or `jq '[.pages[]|select(.status!="ok")]|length' run.json` — but
+  no column states it. The byte figures are therefore over the pages that
+  succeeded, which is the honest denominator for a per-page mean, but it does mean
+  a corpus can be 7.5% short of the site while every published figure looks
+  healthy. Check the failure count before treating a corpus as complete; the
+  README's "Did it work?" section has the commands.
 - Token counts are the same ~4-chars-per-token estimate docmirror's own compile
   step uses. They are an estimate, not a tokenizer's output.
 
