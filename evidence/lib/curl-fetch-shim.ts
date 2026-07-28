@@ -9,9 +9,12 @@
  * Loading this file with `bun --preload` replaces `globalThis.fetch` with a
  * curl subprocess of equivalent behaviour, so docmirror runs unmodified.
  *
- * It is a NO-OP where native fetch already works: run `probe.ts` first and only
- * preload this when the probe says you need it. Nothing in the docmirror source
- * knows this file exists.
+ * It is a NO-OP where native fetch already works, so check before reaching for it:
+ *
+ *   bun -e 'fetch("https://bun.sh/docs").then(r => console.log(r.status)).catch(e => console.log("BROKEN:", e.message))'
+ *
+ * A status code means you do not need this file. Nothing in the docmirror source
+ * knows it exists.
  *
  * Fidelity boundary — this shim is good enough to mirror doc sites, not a
  * general fetch polyfill. It does not implement streaming bodies, ReadableStream

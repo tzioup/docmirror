@@ -13,10 +13,15 @@
  * fetches/searches the model actually performed.
  *
  * Usage:
- *   bun evidence/ab/run-ab.ts --corpora <dir> [--arm frontdoor|cache] [--out <dir>]
+ *   bun evidence/ab/run-ab.ts --corpora <dir> [--arm frontdoor|cache|memory] [--out <dir>]
  *
  * <dir> must contain one subdirectory per corpus named in questions.json, each
- * holding that corpus's compiled markdown. Build it with build-corpora.ts.
+ * holding that corpus's compiled markdown as <name>/<name>.md. There is no
+ * builder script — mirror each source, then copy the compiled file into place:
+ *
+ *   DOCMIRROR_OUTPUT=./runs bun docmirror.ts https://vitest.dev --name vitest
+ *   mkdir -p corpora/vitest
+ *   cp runs/vitest-docs-<stamp>/vitest-docs-compiled.md corpora/vitest/vitest.md
  */
 
 import { mkdir, writeFile, readFile } from "node:fs/promises";

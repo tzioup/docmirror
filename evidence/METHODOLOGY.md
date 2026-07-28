@@ -278,15 +278,19 @@ question, and it wants a normal network rather than a particular computer.
 
 ### Running under a proxy Bun cannot use
 
+Check first — this is **not needed** on an ordinary machine or in GitHub Actions:
 
+```bash
+bun -e 'fetch("https://bun.sh/docs").then(r => console.log(r.status)).catch(e => console.log("BROKEN:", e.message))'
+```
 
-Preload the curl-backed shim:
+A status code means you are done. If it prints `BROKEN`, preload the curl-backed
+shim:
 
 ```bash
 bun --preload ./evidence/lib/curl-fetch-shim.ts docmirror.ts <url>
 ```
 
 It replaces `globalThis.fetch` with a curl subprocess and touches no docmirror
-source. It is **not needed** on an ordinary machine or in GitHub Actions; check
-with a one-line fetch before reaching for it. Its fidelity boundary is documented
-at the top of the file — it is enough to mirror doc sites, not a general polyfill.
+source. Its fidelity boundary is documented at the top of the file — enough to
+mirror doc sites, not a general polyfill.
