@@ -105,7 +105,22 @@
     {
       "date": "2026-07-28",
       "change": "Numeric patterns changed from \\bN\\b to (?<![\\d.])N(?![\\d.]).",
-      "why": "\\b sits between two word characters in '50ms', so \\b50\\b cannot match a correct answer written without a space before the unit. This was not a calibration choice: it scored a correct front-door answer ('**50ms**') as wrong while passing the cache arm's correct answer ('`50` ms'), so the key was silently favouring one arm's phrasing. Fixed after the first run, applied symmetrically, and both arms re-graded with the identical corrected key. Original and corrected scores are both reported."
+      "why": "\\b sits between two word characters in '50ms', so \\b50\\b cannot match a correct answer written without a space before the unit. This was not a calibration choice: it scored a correct front-door answer ('**50ms**') as wrong while passing the cache arm's correct answer ('`50` ms'), so the key was silently favouring one arm's phrasing. Uncorrected, the run would have reported the cache arm as more accurate than the live web off a single regex bug. Fixed after the first run, applied symmetrically, and both arms re-graded with the identical corrected key. Both score sets are in `scores` below and in evidence/METHODOLOGY.md; reproduce the pre-correction column by substituting \\bN\\b for each (?<![\\d.])N(?![\\d.]) pattern and re-running grade.ts over the unchanged raw records.",
+      "scores": {
+        "pre_correction": {
+          "cache": "10/10",
+          "frontdoor": "9/10",
+          "memory": "0/10"
+        },
+        "corrected": {
+          "cache": "10/10",
+          "frontdoor": "10/10",
+          "memory": "0/10"
+        },
+        "flipped": [
+          "frontdoor/vitest-expect-poll"
+        ]
+      }
     }
   ]
 }

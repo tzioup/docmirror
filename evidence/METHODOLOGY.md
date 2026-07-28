@@ -143,12 +143,27 @@ in `questions.json` under `key_corrections`.** Numeric patterns were written
 `\bN\b`, and `\b` does not match between `0` and `m`, so `\b50\b` failed
 against a correct answer written `50ms`. This was not a threshold someone wanted
 to move: it passed the cache arm's `` `50` ms `` and failed the front-door arm's
-`**50ms**`, so the key was silently favouring one arm's phrasing. The fix is
-symmetric, both arms were re-graded with the identical corrected key, and both
-the original and corrected scores are reported. Changing a key after seeing
-results is legitimate only under those three conditions — the key is
-demonstrably broken, the fix is applied to every arm, and the change is
-disclosed.
+`**50ms**`, so the key was silently favouring one arm's phrasing.
+
+Both scores:
+
+| Arm | Pre-correction | Corrected |
+|---|---|---|
+| `cache` | 10/10 | 10/10 |
+| `frontdoor` | **9/10** | 10/10 |
+| `memory` (control) | 0/10 | 0/10 |
+
+Exactly one answer flipped — `vitest-expect-poll`, front-door arm — and the
+defect could only ever flip that direction, because the arm that writes
+`**50ms**` is the one it penalises. Uncorrected, this run would have reported the
+cache arm as *more accurate than the live web*, off a single regex bug, and that
+headline would have been repeated everywhere the evidence is quoted.
+
+Changing a key after seeing results is legitimate only under three conditions —
+the key is demonstrably broken, the fix is applied to every arm identically, and
+the change is disclosed with both sets of numbers. Reproduce the pre-correction
+column by substituting `\bN\b` for each `(?<![\d.])N(?![\d.])` pattern and
+re-running `grade.ts` over the unchanged raw records.
 
 ### Telemetry
 

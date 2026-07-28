@@ -69,6 +69,8 @@ Three arms, one frozen question set, same model (Sonnet), same deterministic gra
 
 The no-tools control is what makes the other two rows mean anything. At 0/10 it establishes that these questions are not answerable from the model's prior knowledge, so both sourced arms were genuinely reading their source rather than reciting. Without that row, two arms tying at 10/10 would be uninterpretable.
 
+**One correction was made to the grading key after the first run, and it changed the headline.** Numeric answers were matched with `\bN\b`, which cannot match `50ms` — `\b` needs a non-word character, and `0`/`m` are both word characters. That failed the front-door arm's `**50ms**` while passing the cache arm's `` `50` ms ``, scoring **frontdoor 9/10 against cache 10/10**. Uncorrected, this page would be claiming a mirrored corpus is *more accurate than the live web*, from a regex bug rather than from anything about documentation. The fix was applied to both arms identically and both score sets are kept: [`evidence/METHODOLOGY.md`](evidence/METHODOLOGY.md#grading), and `key_corrections` in [`evidence/ab/questions.json`](evidence/ab/questions.json).
+
 Raw records and per-question results: [`evidence/ab/runs/`](evidence/ab/runs/).
 
 ## How It Works
@@ -214,7 +216,9 @@ The subprocess path deliberately strips `ANTHROPIC_API_KEY` and `ANTHROPIC_AUTH_
 
 Measured during calibration through a structured eval harness: 20-case structural eval, GPT-4o AI judge scoring (fidelity + hallucination detection), full 194-page corpus run, concurrency calibration, and an independent cross-vendor code audit.
 
-**Winning config at the time of measurement: prompt v2.0.0 on the Haiku family, concurrency 3.**
+**Measured 2026-05. Winning config at the time: prompt v2.0.0 on the Haiku family, concurrency 3.** That date is load-bearing, not a footnote — every caveat below is about drift away from it, and the further you are from it the less the table is worth.
+
+**The eval harness that produced this table is not in this repo**, and neither is its 194-page fixture corpus. So the numbers are reported, not reproducible from here — which is the honest reason the box above says run your own eval rather than trust these. What *is* here is the prompt (versioned), the validators (`condense.ts`), and a working three-arm A/B harness in [`evidence/ab/`](evidence/ab/) that is a reasonable template to adapt: frozen question set, deterministic grader, no model in the grading path.
 
 | Metric | prompt v2.0.0 × Haiku | prompt v2.0.0 × Sonnet |
 |--------|-------------|---------------|
