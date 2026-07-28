@@ -31,20 +31,29 @@ A sample of real documentation pages fetched as raw HTML, against the same pages
 | Source | Doc pages | Mean HTML page | Mean mirrored page | Ratio | Corpus total | Est. tokens |
 |---|---:|---:|---:|---:|---:|---:|
 | bun | 315 | 400 KB | 6 KB | **64×** | 1.9 MB | 502,437 |
+| astro | 417 | 182 KB | 7 KB | **24×** | 500 KB | 128,057 |
 | hono | 86 | 85 KB | 4 KB | **21×** | 356 KB | 91,202 |
-| fastapi | 151 | 216 KB | 13 KB | **17×** | 1.9 MB | 505,461 |
 | vitest | 191 | 90 KB | 6 KB | **15×** | 1.1 MB | 294,290 |
+| fastapi | 151 | 216 KB | 20 KB | **11×** | 1.9 MB | 505,461 |
 
-### The pipeline's own delta
+### Where that saving actually comes from
 
-| Source | Discovery | Fetched | Emitted | Reduction |
-|---|---|---:|---:|---:|
-| bun | `llms-full-txt` | 1.9 MB | 1.9 MB | n/a — fast path, no stripping |
-| hono | `llms-full-txt` | 356 KB | 356 KB | n/a — fast path, no stripping |
-| vitest | `llms-full-txt` | 1.1 MB | 1.1 MB | n/a — fast path, no stripping |
-| fastapi | `sitemap` | 2.9 MB | 1.9 MB | 34% |
+Almost all of it is the *acquisition* step — taking markdown from the site instead of HTML, or converting HTML locally. The noise-stripping pass that runs afterwards is a small marginal gain on top:
 
-**Read that second table before quoting a compression number.** When a site publishes `/llms-full.txt`, DocMirror takes a single-file fast path and strips nothing — the run's own `run.json` says so. Three of the four sources above take that path. On it, what you gain is availability and latency, not smaller bytes; the compression claim is real only on the HTML strip path, where fastapi's raw pages went from 2.9 MB to 1.9 MB.
+| Source | Discovery | Pages stripped | Raw | Stripped | Stripping removed |
+|---|---|---:|---:|---:|---:|
+| astro | `sitemap` | 1928 | 14.7 MB | 14.1 MB | 4.1% |
+| fastapi | `sitemap` | 145 | 2.9 MB | 2.9 MB | 1.5% |
+| bun | `llms-full-txt` | — | 1.9 MB | 1.9 MB | n/a — fast path, no stripping |
+| hono | `llms-full-txt` | — | 356 KB | 356 KB | n/a — fast path, no stripping |
+| vitest | `llms-full-txt` | — | 1.1 MB | 1.1 MB | n/a — fast path, no stripping |
+
+Two things follow, and both cut against a simple "DocMirror shrinks your docs by N%" claim:
+
+- **When a site publishes `/llms-full.txt`, no stripping happens at all.** Discovery short-circuits to a single-file fast path and the run's own `run.json` records `"fidelity": "not applicable"`. Three of the five sources here take that route. On it you gain availability and latency, not smaller bytes.
+- **On the strip path, stripping itself is worth single digits.** The pages it operates on are already markdown, so there is not much chrome left to remove. The order-of-magnitude number in the table above is earned before stripping runs.
+
+Both figures compare like with like. The strip percentages are measured over the *same page set* on each side; comparing fetched bytes against the final compiled file would have counted `--smart` page-pruning as compression and reported astro at 96.7%, which is not a compression result.
 
 ### Does a local corpus actually beat fetching live?
 

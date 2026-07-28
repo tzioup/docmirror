@@ -50,6 +50,7 @@ interface SourceMeasurement {
   pages_fetched: number;
   raw_bytes: number;
   clean_bytes: number;
+  clean_files: number;
   compiled_bytes: number;
   compiled_tokens_est: number;
   pipeline_reduction_pct: number | null;
@@ -207,11 +208,15 @@ async function measureSource(runDir: string, sampleN: number): Promise<SourceMea
       ? (new Date(run.completedAt).getTime() - new Date(run.startedAt).getTime()) / 1000
       : null;
 
-  // Pipeline delta is only meaningful when stripping actually ran.
+  // Strip delta must compare the SAME page set on both sides. The compiled file
+  // is post-`--smart`, so measuring raw → compiled on a pruned run reports the
+  // pruning as if it were compression: astro dropped 1928 pages to 40, which
+  // read as "96.7% reduction" and was nothing of the kind. raw → clean is
+  // stripping alone, over identical pages.
   const inputBytes = raw.bytes;
   const reduction =
-    !fastPath && inputBytes > 0 && compiledBytes > 0
-      ? Number((((inputBytes - compiledBytes) / inputBytes) * 100).toFixed(1))
+    !fastPath && inputBytes > 0 && clean.bytes > 0
+      ? Number((((inputBytes - clean.bytes) / inputBytes) * 100).toFixed(1))
       : null;
 
   let sitemapCount: number | null = null;
@@ -237,7 +242,19 @@ async function measureSource(runDir: string, sampleN: number): Promise<SourceMea
   }
 
   const htmlMean = sampled > 0 ? Math.round(sampleBytes / sampled) : null;
-  const mdMean = sitemapCount && sitemapCount > 0 && compiledBytes > 0 ? Math.round(compiledBytes / sitemapCount) : null;
+  // Per-page mirrored size, measured over the pages that were actually mirrored.
+  // On the strip path that is clean/ (one file per page). On the fast path there
+  // is no per-page split — one file covers the whole site — so the site's own
+  // page count is the right divisor there and only there. Using the site count
+  // for a `--smart` run divides a 40-page corpus by a 417-page site and
+  // overstates the ratio by an order of magnitude.
+  const mdMean = fastPath
+    ? sitemapCount && sitemapCount > 0 && compiledBytes > 0
+      ? Math.round(compiledBytes / sitemapCount)
+      : null
+    : clean.files > 0 && clean.bytes > 0
+      ? Math.round(clean.bytes / clean.files)
+      : null;
   const ratio = htmlMean && mdMean ? Number((htmlMean / mdMean).toFixed(1)) : null;
 
   return {
@@ -248,6 +265,7 @@ async function measureSource(runDir: string, sampleN: number): Promise<SourceMea
     pages_fetched: pagesFetched,
     raw_bytes: raw.bytes,
     clean_bytes: clean.bytes,
+    clean_files: clean.files,
     compiled_bytes: compiledBytes,
     compiled_tokens_est: compiledTokens,
     pipeline_reduction_pct: reduction,
@@ -282,11 +300,13 @@ function renderMarkdown(rows: SourceMeasurement[]): string {
   out.push("");
   out.push("### Pipeline delta (bytes fetched → bytes emitted)");
   out.push("");
-  out.push("| Source | Discovery | Fetched | Emitted | Reduction |");
-  out.push("|---|---|---:|---:|---:|");
+  out.push("| Source | Discovery | Pages stripped | Raw | Stripped | Reduction |");
+  out.push("|---|---|---:|---:|---:|---:|");
   for (const r of rows) {
     out.push(
-      `| ${r.name} | \`${r.discovery_method ?? "—"}\` | ${r.raw_bytes ? kb(r.raw_bytes) : "—"} | ${kb(r.compiled_bytes)} | ${
+      `| ${r.name} | \`${r.discovery_method ?? "—"}\` | ${r.fast_path ? "—" : r.clean_files} | ${
+        r.raw_bytes ? kb(r.raw_bytes) : "—"
+      } | ${r.clean_bytes ? kb(r.clean_bytes) : "—"} | ${
         r.fast_path ? "n/a — fast path, no stripping" : r.pipeline_reduction_pct !== null ? `${r.pipeline_reduction_pct}%` : "—"
       } |`,
     );

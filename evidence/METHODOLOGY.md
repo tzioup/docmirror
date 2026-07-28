@@ -25,7 +25,14 @@ HTML bytes per page is compared against the mirrored corpus's mean bytes per pag
 source, and it is what a reader wants to know: what a documentation page costs
 through the front door versus mirrored.
 
-**Pipeline delta.** Bytes docmirror fetched versus bytes it emitted.
+**Strip delta.** Bytes docmirror fetched versus bytes left after noise-stripping,
+measured over the **same page set** on both sides.
+
+> Comparing fetched bytes against the final *compiled* file is wrong on any run
+> that used `--smart`, because the compiled file is post-pruning: astro dropped
+> 1928 pages to 40, which computes as "96.7% reduction" and is page-pruning, not
+> compression. `clean/` holds one stripped file per fetched page, so raw → clean
+> isolates stripping.
 
 > **This is only a compression claim on the HTML strip path.** When a site
 > publishes `/llms-full.txt`, docmirror takes a single-file fast path and performs
@@ -61,6 +68,12 @@ so two runs over an unchanged site are comparable.
 
 - Site HTML changes, so absolute byte figures drift. The *ratio* is the durable
   part; re-run rather than trusting a stale number.
+- Mean mirrored bytes per page is computed differently by path, and it has to
+  be: on the strip path from `clean/` (one file per page), on the fast path from
+  the compiled file over the site's page count, because a single `llms-full.txt`
+  covers the whole site and has no per-page split. Using the site's page count
+  on a `--smart` run divides a 40-page corpus by a 417-page site and overstates
+  the ratio by roughly 10×.
 - `sitemap.xml` is treated as the site's page count. A site that omits pages from
   its sitemap will show a larger mean-markdown-bytes-per-page than reality.
 - Token counts are the same ~4-chars-per-token estimate docmirror's own compile
