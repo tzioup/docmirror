@@ -24,17 +24,23 @@ Nothing else is required. Every API key in [Environment](#environment) is option
 
 Numbers below were produced by the scripts in [`evidence/`](evidence/) and can be re-run. The protocol, and the limits on what each figure supports, are in [`evidence/METHODOLOGY.md`](evidence/METHODOLOGY.md). Measured 2026-07-28; `--condense` was not used for any of it.
 
+These drift: the live sites change under you. Re-measuring the same corpora 3.5 hours later moved bun's ratio from 64.2× to 66.1× with nothing on this side having changed. Treat the order of magnitude as the finding and the exact figure as perishable.
+
 ### What a doc page costs, front door vs mirrored
 
 A sample of real documentation pages fetched as raw HTML, against the same pages mirrored:
 
 | Source | Doc pages | Mean HTML page | Mean mirrored page | Ratio | Corpus total | Est. tokens |
 |---|---:|---:|---:|---:|---:|---:|
-| bun | 315 | 400 KB | 6 KB | **64×** | 1.9 MB | 502,437 |
-| astro | 417 | 182 KB | 7 KB | **24×** | 500 KB | 128,057 |
-| hono | 86 | 85 KB | 4 KB | **21×** | 356 KB | 91,202 |
-| vitest | 191 | 90 KB | 6 KB | **15×** | 1.1 MB | 294,290 |
-| fastapi | 151 | 216 KB | 20 KB | **11×** | 1.9 MB | 505,461 |
+| bun | 315 | 412 KB | 6 KB | **66×** | 1.9 MB | 324,443 |
+| astro | 417 | 182 KB | 7 KB | **24×** | 500 KB ¹ | 89,288 ¹ |
+| hono | 86 | 85 KB | 4 KB | **21×** | 356 KB | 76,974 |
+| vitest | 191 | 90 KB | 6 KB | **15×** | 1.1 MB | 240,299 |
+| fastapi | 151 | 216 KB | 20 KB | **11×** | 1.9 MB ¹ | 306,632 ¹ |
+
+¹ **These two sources were mirrored with `--smart … --top 40`**, so their **Corpus total** and **Est. tokens** describe the 40 kept pages, not the whole site — astro kept 40 of 1928 stripped pages, fastapi 40 of 145. Do not read astro's row as "the whole of the Astro docs mirrors to 500 KB": the full stripped corpus is 14.1 MB. Every other column, the ratio included, is measured over the full page set, so the front-door comparison is unaffected. `measure.ts` reads the pruning out of each run's own `run.json` and marks the affected cells, so this cannot silently go missing on a re-run.
+
+Token counts are docmirror's own estimate, read from each compiled file's header, rather than a second approximation computed here — a bytes-per-token rule of thumb disagrees with it by 40–65% and would leave a reader sizing a context budget with two different numbers for the same file.
 
 ### Where that saving actually comes from
 

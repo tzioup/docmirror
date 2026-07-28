@@ -16,6 +16,13 @@ export function initManifest(
   config: RunConfig,
   discoveryMethod: DiscoveryMethod,
   platform: PlatformDetection,
+  // When the run actually began. The manifest is built near the END of a run —
+  // it needs the page results and the platform detection, which do not exist
+  // until the crawl is done — so stamping "now" here recorded the moment the
+  // manifest was assembled, not the moment work started. `completedAt - startedAt`
+  // then measured manifest assembly: a 2085-page astro crawl that really took
+  // 12m14s reported 0.002s. Callers pass the timestamp they took on entry.
+  startedAt?: string,
 ): RunManifest {
   const { jinaApiKey, firecrawlApiKey, llmApiKey, llmBaseUrl, ...safeConfig } = config;
   const name =
@@ -25,7 +32,7 @@ export function initManifest(
     version: MANIFEST_VERSION,
     url: config.url,
     name,
-    startedAt: new Date().toISOString(),
+    startedAt: startedAt ?? new Date().toISOString(),
     discoveryMethod,
     platform,
     pages: [],

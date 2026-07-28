@@ -48,21 +48,41 @@ number anywhere in the README.
 
 ### Protocol
 
+These are the exact invocations behind the committed results — including the two
+that were pruned, because a protocol that omits a flag it used cannot reproduce
+its own table:
+
 ```bash
 # 1. Mirror the sources. --condense is deliberately NOT passed: it is a second,
 #    lossy variable, and the size claims must be about the core pipeline.
-DOCMIRROR_OUTPUT=./runs bun docmirror.ts https://bun.sh/docs --name bun
-DOCMIRROR_OUTPUT=./runs bun docmirror.ts https://hono.dev --name hono
-DOCMIRROR_OUTPUT=./runs bun docmirror.ts https://vitest.dev --name vitest
-# ...one per source
+DOCMIRROR_OUTPUT=./runs bun docmirror.ts https://bun.sh/docs   --name bun
+DOCMIRROR_OUTPUT=./runs bun docmirror.ts https://hono.dev      --name hono
+DOCMIRROR_OUTPUT=./runs bun docmirror.ts https://vitest.dev    --name vitest
 
-# 2. Measure.
+# The two HTML-path sources were pruned with --smart/--top. That is a real
+# configuration choice, not an accident, and it is why their Corpus total and
+# Est. tokens columns carry a footnote: those cells describe the kept subset.
+DOCMIRROR_OUTPUT=./runs bun docmirror.ts https://docs.astro.build/en/ --name astro \
+  --smart "content collections routing islands integrations deploy" --top 40
+DOCMIRROR_OUTPUT=./runs bun docmirror.ts https://fastapi.tiangolo.com/ --name fastapi \
+  --smart "request body query parameters dependencies security response model" --top 40
+
+# 2. Measure. --out defaults to evidence/results, i.e. the committed evidence.
 bun evidence/measure.ts --runs ./runs --out evidence/results
 ```
 
 Outputs `corpus-sizes.json` (raw) and `corpus-sizes.md` (the table the README
 embeds). The HTML sample is an even spread across the sitemap, not a random draw,
 so two runs over an unchanged site are comparable.
+
+`measure.ts` **refuses to write** when no run was found, or when not one source
+produced a front-door ratio, and exits 1. Both are otherwise silent-success
+failures that overwrite the committed evidence with a table of dashes: the
+default `--out` is the evidence directory itself, and the HTML sampling fails
+soft, so an empty `--runs` directory or a dead proxy destroyed the data and
+reported success. Pruning and the token source are recorded per row
+(`smart_top_n`, `compiled_tokens_source`), read out of each run's own artifacts,
+so neither can silently go missing on a re-run.
 
 ### Limits
 
@@ -187,9 +207,16 @@ the CONDENSE section recommends a sandboxed runner.
 ### Protocol
 
 ```bash
-# 1. Build corpora in the layout the harness expects:
-#      <corpora>/<name>/<name>.md
-mkdir -p corpora/vitest && cp runs/vitest-docs-*/vitest-docs-compiled.md corpora/vitest/vitest.md
+# 1. Build corpora in the layout the harness expects: <corpora>/<name>/<name>.md
+#    questions.json needs ALL THREE. Build one and the cache arm scores its
+#    missing questions 0 for a reason unrelated to the corpus — run-ab.ts now
+#    checks for all of them and exits 1 before spending anything, but the
+#    requirement is the question set's, so it changes when the questions do:
+#      bun -e 'console.log([...new Set(require("./evidence/ab/questions.json").questions.map(q=>q.corpus))].join(" "))'
+for c in vitest hono bun; do
+  mkdir -p "corpora/$c"
+  cp runs/$c-docs-*/$c-docs-compiled.md "corpora/$c/$c.md"
+done
 
 # 2. Run all three arms.
 bun evidence/ab/run-ab.ts --corpora ./corpora --out evidence/ab/runs

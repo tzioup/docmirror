@@ -227,6 +227,33 @@ async function main(): Promise<void> {
     }
   }
 
+  // Check the corpora exist BEFORE spending anything. Without this the cache arm
+  // runs happily against an empty directory: the model reports it cannot find the
+  // file, every answer misses the key, and the run lands as a clean `0/10` with
+  // `runner_errors: 0` — a result indistinguishable from "the corpus did not
+  // help", for a full 10-question arm's worth of real money. It reads as evidence
+  // against the tool, which is the most expensive way for a harness to be wrong.
+  if (arms.includes("cache")) {
+    const needed = [...new Set(spec.questions.map((q) => q.corpus))];
+    const missing: string[] = [];
+    for (const corpus of needed) {
+      const p = join(corporaRoot, corpus, `${corpus}.md`);
+      if (!(await Bun.file(p).exists())) missing.push(p);
+    }
+    if (missing.length) {
+      process.stderr.write(
+        `error: the cache arm needs ${needed.length} corpus file(s) and ${missing.length} are absent:\n` +
+          missing.map((m) => `  ${m}\n`).join("") +
+          "\nBuild each one before running, or the arm scores 0 for a reason that has\n" +
+          "nothing to do with the corpus:\n" +
+          "  DOCMIRROR_OUTPUT=./runs bun docmirror.ts <url> --name <corpus>\n" +
+          "  mkdir -p <corpora>/<corpus>\n" +
+          "  cp runs/<corpus>-docs-*/<corpus>-docs-compiled.md <corpora>/<corpus>/<corpus>.md\n",
+      );
+      process.exit(1);
+    }
+  }
+
   const records: RunRecord[] = [];
   for (const arm of arms) {
     // The front-door arm runs from a directory with no corpus in it, so a local

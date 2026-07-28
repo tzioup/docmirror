@@ -36,7 +36,8 @@ interface RunJson {
   name?: string;
   url?: string;
   discoveryMethod?: string;
-  config?: { url?: string; name?: string };
+  tokenEstimate?: number;
+  config?: { url?: string; name?: string; smart?: string; topN?: number };
   pages?: Array<{ url?: string; status?: string }>;
   startedAt?: string;
   completedAt?: string;
@@ -53,8 +54,12 @@ interface SourceMeasurement {
   clean_files: number;
   compiled_bytes: number;
   compiled_tokens_est: number;
+  compiled_tokens_source: string;
+  smart_query: string | null;
+  smart_top_n: number | null;
   pipeline_reduction_pct: number | null;
   elapsed_s: number | null;
+  elapsed_note: string | null;
   sitemap_page_count: number | null;
   html_sample_n: number;
   html_sample_bytes: number;
@@ -106,6 +111,17 @@ async function fileBytes(path: string): Promise<number> {
     return (await stat(path)).size;
   } catch {
     return 0;
+  }
+}
+
+/** docmirror stamps `> N pages | ~X tokens` into every compiled file's header. */
+async function compiledHeaderTokens(path: string): Promise<number | null> {
+  try {
+    const head = (await readFile(path, "utf8")).slice(0, 2048);
+    const m = head.match(/~([\d,]+)\s+tokens/);
+    return m ? Number(m[1].replace(/,/g, "")) : null;
+  } catch {
+    return null;
   }
 }
 
@@ -197,16 +213,38 @@ async function measureSource(runDir: string, sampleN: number): Promise<SourceMea
   const compiledPath = join(runDir, `${name}-docs-compiled.md`);
   const compiledBytes = await fileBytes(compiledPath);
 
-  // docmirror's own compile step reports a token estimate; recompute the same
-  // way (~4 chars/token) rather than importing it, so this file stays standalone.
-  const compiledTokens = Math.round(compiledBytes / 4);
+  // Use docmirror's own token estimate. A ~4-chars-per-token approximation was
+  // used here previously and disagreed with the tool by 43-65% — compile.ts
+  // weights prose, code and CJK differently (1.33 / 2.0 / 1.5 per word) rather
+  // than dividing bytes. Publishing a second, different number for the same file
+  // gives a reader sizing a context budget no way to choose. Falls back to the
+  // crude estimate only when the field is absent, and says so.
+  // Read it from the compiled file's own header first — every run writes
+  // `> N pages | ~X tokens` there, including ones whose manifest predates
+  // `tokenEstimate` being recorded on the fast path.
+  const headerTokens = await compiledHeaderTokens(compiledPath);
+  const toolTokens = headerTokens ?? (typeof run.tokenEstimate === "number" ? run.tokenEstimate : null);
+  const compiledTokens = toolTokens ?? Math.round(compiledBytes / 4);
 
   const pagesFetched = Array.isArray(run.pages) ? run.pages.length : raw.files;
 
-  const elapsed =
+  // `--smart <query> --top N` prunes the compiled file to the N best-matching
+  // pages. When it is on, `compiled_bytes` describes that subset while every
+  // other column describes the whole site — so it has to travel with the number
+  // or the corpus total reads as "the entire docs mirror to this size".
+  const smart = typeof run.config?.smart === "string" ? run.config.smart : null;
+  const topN = smart ? (typeof run.config?.topN === "number" ? run.config.topN : null) : null;
+
+  // Guard against manifests written before `startedAt` was stamped at run start.
+  // Those recorded manifest-assembly time, so a 2085-page crawl that really took
+  // 12m14s reports 0.002s. A sub-second duration across more than one fetched
+  // page is not a duration; report nothing rather than a plausible-looking lie.
+  const rawElapsed =
     run.startedAt && run.completedAt
       ? (new Date(run.completedAt).getTime() - new Date(run.startedAt).getTime()) / 1000
       : null;
+  const elapsedUnreliable = rawElapsed !== null && rawElapsed < 1 && pagesFetched > 1;
+  const elapsed = elapsedUnreliable ? null : rawElapsed;
 
   // Strip delta must compare the SAME page set on both sides. The compiled file
   // is post-`--smart`, so measuring raw → compiled on a pruned run reports the
@@ -268,8 +306,19 @@ async function measureSource(runDir: string, sampleN: number): Promise<SourceMea
     clean_files: clean.files,
     compiled_bytes: compiledBytes,
     compiled_tokens_est: compiledTokens,
+    compiled_tokens_source:
+      headerTokens !== null
+        ? "docmirror (compiled file header)"
+        : toolTokens !== null
+          ? "docmirror (run.json)"
+          : "bytes/4 approximation — no tool figure found",
+    smart_query: smart,
+    smart_top_n: topN,
     pipeline_reduction_pct: reduction,
     elapsed_s: elapsed,
+    elapsed_note: elapsedUnreliable
+      ? "discarded — manifest predates the fix that stamps startedAt at run start, so it timed manifest assembly, not the run"
+      : null,
     sitemap_page_count: sitemapCount,
     html_sample_n: sampled,
     html_sample_bytes: sampleBytes,
@@ -291,13 +340,26 @@ function renderMarkdown(rows: SourceMeasurement[]): string {
   out.push("| Source | Doc pages | Mean HTML page | Mean mirrored page | Ratio | Corpus total | Est. tokens |");
   out.push("|---|---:|---:|---:|---:|---:|---:|");
   for (const r of rows) {
+    // A pruned run's corpus total describes the kept subset, not the site. Mark
+    // it in the cell rather than in a note under the table, because the number
+    // is what gets quoted.
+    const pruned = r.smart_top_n !== null ? ` ¹` : "";
     out.push(
       `| ${r.name} | ${r.sitemap_page_count ?? "—"} | ${r.html_mean_bytes_per_page ? kb(r.html_mean_bytes_per_page) : "—"} | ${
         r.markdown_mean_bytes_per_page ? kb(r.markdown_mean_bytes_per_page) : "—"
-      } | ${r.front_door_ratio ? `${r.front_door_ratio}×` : "—"} | ${kb(r.compiled_bytes)} | ${r.compiled_tokens_est.toLocaleString()} |`,
+      } | ${r.front_door_ratio ? `${r.front_door_ratio}×` : "—"} | ${kb(r.compiled_bytes)}${pruned} | ${r.compiled_tokens_est.toLocaleString()}${pruned} |`,
     );
   }
   out.push("");
+  const prunedRows = rows.filter((r) => r.smart_top_n !== null);
+  if (prunedRows.length) {
+    out.push(
+      `¹ Run with \`--smart … --top N\`, so **Corpus total** and **Est. tokens** describe the kept subset, not the whole site — ` +
+        prunedRows.map((r) => `${r.name} kept ${r.smart_top_n} of ${r.clean_files} stripped pages`).join("; ") +
+        `. Every other column, including the ratio, is measured over the full page set.`,
+    );
+    out.push("");
+  }
   out.push("### Pipeline delta (bytes fetched → bytes emitted)");
   out.push("");
   out.push("| Source | Discovery | Pages stripped | Raw | Stripped | Reduction |");
@@ -348,6 +410,34 @@ async function main(): Promise<void> {
   }
 
   rows.sort((a, b) => a.name.localeCompare(b.name));
+
+  // Refuse to write a result that measured nothing. The default --out is the
+  // committed evidence directory, and the network work here fails soft (a
+  // sitemap that will not fetch yields a null ratio, not an error), so an empty
+  // runs directory or a dead proxy previously overwrote the repo's only
+  // evidence with a table of dashes and exited 0. Destroying data and reporting
+  // success is worse than either destroying it loudly or not running.
+  const usable = rows.filter((r) => r.front_door_ratio !== null);
+  if (rows.length === 0) {
+    process.stderr.write(`\nerror: no docmirror runs found under ${runsRoot} — nothing written.\n`);
+    process.stderr.write("       --runs wants a directory OF run directories (DOCMIRROR_OUTPUT), not one run.\n");
+    process.exit(1);
+  }
+  if (usable.length === 0) {
+    process.stderr.write(
+      `\nerror: ${rows.length} run(s) found but not one produced a front-door ratio — nothing written.\n` +
+        "       Every HTML sample fetch failed. If Bun's fetch cannot reach the network here, preload the\n" +
+        "       curl shim: bun --preload ./evidence/lib/curl-fetch-shim.ts evidence/measure.ts ...\n",
+    );
+    process.exit(1);
+  }
+  if (usable.length < rows.length) {
+    process.stderr.write(
+      `\nwarning: ${rows.length - usable.length} of ${rows.length} source(s) produced no front-door ratio; ` +
+        "their rows will read '—'.\n",
+    );
+  }
+
   await writeFile(join(outDir, "corpus-sizes.json"), JSON.stringify({ sample_n: sampleN, sources: rows }, null, 2));
   await writeFile(join(outDir, "corpus-sizes.md"), renderMarkdown(rows) + "\n");
   process.stdout.write(renderMarkdown(rows) + "\n");

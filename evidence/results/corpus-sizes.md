@@ -2,11 +2,13 @@
 
 | Source | Doc pages | Mean HTML page | Mean mirrored page | Ratio | Corpus total | Est. tokens |
 |---|---:|---:|---:|---:|---:|---:|
-| astro | 417 | 182 KB | 7 KB | 24.4× | 500 KB | 128,057 |
-| bun | 315 | 400 KB | 6 KB | 64.2× | 1.9 MB | 502,437 |
-| fastapi | 151 | 216 KB | 20 KB | 10.6× | 1.9 MB | 505,461 |
-| hono | 86 | 85 KB | 4 KB | 20.5× | 356 KB | 91,202 |
-| vitest | 191 | 90 KB | 6 KB | 15× | 1.1 MB | 294,290 |
+| astro | 417 | 182 KB | 7 KB | 24.4× | 500 KB ¹ | 89,288 ¹ |
+| bun | 315 | 412 KB | 6 KB | 66.1× | 1.9 MB | 324,443 |
+| fastapi | 151 | 216 KB | 20 KB | 10.6× | 1.9 MB ¹ | 306,632 ¹ |
+| hono | 86 | 85 KB | 4 KB | 20.5× | 356 KB | 76,974 |
+| vitest | 191 | 90 KB | 6 KB | 15× | 1.1 MB | 240,299 |
+
+¹ Run with `--smart … --top N`, so **Corpus total** and **Est. tokens** describe the kept subset, not the whole site — astro kept 40 of 1928 stripped pages; fastapi kept 40 of 145 stripped pages. Every other column, including the ratio, is measured over the full page set.
 
 ### Pipeline delta (bytes fetched → bytes emitted)
 

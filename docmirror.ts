@@ -46,6 +46,8 @@ function log(msg: string): void {
 }
 
 async function mirrorCommand(url: string, opts: Record<string, unknown>): Promise<void> {
+  // Taken here, not where the manifest is built — see initManifest's startedAt.
+  const runStartedAt = new Date().toISOString();
   const name = (opts.name as string) || deriveNameFromUrl(url);
   const outputDir = buildOutputDir(name);
 
@@ -98,7 +100,7 @@ async function mirrorCommand(url: string, opts: Record<string, unknown>): Promis
     await Bun.write(join(outputDir, "clean", "llms-full.md"), discovery.fullContent);
 
     const platform = detectPlatform([discovery.fullContent], url);
-    const manifest = initManifest(config, discovery.method, platform);
+    const manifest = initManifest(config, discovery.method, platform, runStartedAt);
     addPageResult(manifest, {
       url: `${url}llms-full.txt`,
       status: "ok",
@@ -126,6 +128,12 @@ async function mirrorCommand(url: string, opts: Record<string, unknown>): Promis
       }],
     };
     manifest.validation = validation;
+    // The fast path recorded no tokenEstimate, so `run.json` was missing the one
+    // figure anything sizing a context budget needs — while the compiled file's
+    // own header printed it. Anything reading the manifest instead of the file
+    // had to re-derive it, and a bytes/4 approximation disagrees with
+    // estimateTokens by 40-65%.
+    manifest.tokenEstimate = estimateTokens(discovery.fullContent);
     manifest.completedAt = new Date().toISOString();
 
     compile(cleanPages, manifest, outputDir);
@@ -213,7 +221,7 @@ async function mirrorCommand(url: string, opts: Record<string, unknown>): Promis
   const validation = validate(rawPages, pagesForCompile, discovery.urls, pageResults, discovery.sitemapUrls, outputDir);
 
   // Build manifest — attach per-page flags
-  const manifest = initManifest(config, discovery.method, platform);
+  const manifest = initManifest(config, discovery.method, platform, runStartedAt);
   for (const result of pageResults) {
     if (result.status === "ok" && result.rawPath) {
       const slug = result.rawPath.replace("pages/", "").replace(".md", "");
