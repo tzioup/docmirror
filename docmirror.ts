@@ -10,7 +10,7 @@ import { stripPages } from "./strip.ts";
 import { validate } from "./validate.ts";
 import { compile, estimateTokens } from "./compile.ts";
 import { postcompile } from "./postcompile.ts";
-import { initManifest, addPageResult, saveManifest, loadManifest, getResumeState, computeQualitySummary } from "./state.ts";
+import { initManifest, addPageResult, saveManifest, loadManifest, getResumeState, computeQualitySummary, summarizeExclusions, formatExclusionBreakdown } from "./state.ts";
 import { smartPrune } from "./smart.ts";
 import { condensePages } from "./condense.ts";
 import type { RunConfig } from "./types.ts";
@@ -159,7 +159,11 @@ async function mirrorCommand(url: string, opts: Record<string, unknown>): Promis
   // Fetch pages
   const pageResults = await fetchPages(discovery.urls, config, outputDir);
   const successCount = pageResults.filter((p) => p.status === "ok").length;
+  const exclusions = summarizeExclusions(pageResults);
   log(`Fetched ${successCount}/${discovery.urls.length} pages`);
+  if (exclusions.count > 0) {
+    log(`Excluded ${exclusions.count}/${discovery.urls.length} (dead links, redirects, or unfetchable — not a partial run): ${formatExclusionBreakdown(exclusions)}`);
+  }
 
   // Load raw pages from disk
   const rawPages = new Map<string, string>();
@@ -286,7 +290,8 @@ async function mirrorCommand(url: string, opts: Record<string, unknown>): Promis
   saveManifest(manifest, outputDir);
 
   const quality = manifest.qualitySummary!;
-  log(`Done. ${successCount} pages → ~${tokenEstimate} tokens. Quality: ${quality.clean}/${quality.total} clean (${quality.cleanPct}%). Output: ${outputDir}/`);
+  log(`Done. ${successCount}/${discovery.urls.length} discovered URLs became pages (${exclusions.count} excluded, see above) → ~${tokenEstimate} tokens.`);
+  log(`Quality: ${quality.clean}/${quality.total} clean (${quality.cleanPct}%) — this grades the ${successCount} pages that were fetched, not the ${discovery.urls.length} URLs discovered. Output: ${outputDir}/`);
   console.log(
     JSON.stringify(
       {
@@ -303,6 +308,11 @@ async function mirrorCommand(url: string, opts: Record<string, unknown>): Promis
           pct: quality.cleanPct,
           flags: Object.keys(quality.flagCounts).length > 0 ? quality.flagCounts : undefined,
         },
+        excluded: exclusions.count > 0 ? {
+          count: exclusions.count,
+          reasons: exclusions.reasons,
+          note: "these are URLs that were discovered but not fetched — not counted in `quality` above; see reports/coverage.json for the full per-URL list",
+        } : undefined,
         cleanliness: `${validation.cleanliness.flaggedPercent.toFixed(1)}% flagged`,
         fidelity: `${validation.fidelity.overStripped} over-stripped`,
         coverage: `${validation.coverage.fetchPercent.toFixed(1)}% of discovered URLs fetched`,
@@ -428,11 +438,18 @@ async function resumeCommand(dir: string): Promise<void> {
 
   const total = manifest.pages.filter((p) => p.status === "ok").length;
   const quality = manifest.qualitySummary;
-  log(`Resume complete. ${total} total pages → ~${tokenEstimate} tokens. Quality: ${quality.clean}/${quality.total} clean (${quality.cleanPct}%).`);
+  const exclusions = summarizeExclusions(manifest.pages);
+  log(`Resume complete. ${total}/${manifest.pages.length} tracked URLs are pages (${exclusions.count} excluded) → ~${tokenEstimate} tokens.`);
+  if (exclusions.count > 0) {
+    log(`Excluded: ${formatExclusionBreakdown(exclusions)}`);
+  }
+  log(`Quality: ${quality.clean}/${quality.total} clean (${quality.cleanPct}%) — this grades the ${total} pages that were fetched, not the ${manifest.pages.length} URLs tracked.`);
   console.log(JSON.stringify({
     dir,
     resumedPages: newPageResults.length,
     totalPages: total,
+    totalTracked: manifest.pages.length,
+    excluded: exclusions.count > 0 ? { count: exclusions.count, reasons: exclusions.reasons } : undefined,
     tokenEstimate,
     quality: {
       clean: quality.clean,

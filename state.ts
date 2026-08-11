@@ -5,6 +5,7 @@ import type {
   PlatformDetection,
   DiscoveryMethod,
   QualitySummary,
+  ExclusionSummary,
 } from "./types.ts";
 import { join } from "node:path";
 import { existsSync, renameSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
@@ -99,6 +100,27 @@ export function computeQualitySummary(manifest: RunManifest): QualitySummary {
     cleanPct: total > 0 ? Math.round((clean / total) * 1000) / 10 : 100,
     flagCounts,
   };
+}
+
+export function summarizeExclusions(pageResults: PageResult[]): ExclusionSummary {
+  const reasons: Record<string, number> = {};
+  let count = 0;
+
+  for (const page of pageResults) {
+    if (page.status === "ok") continue;
+    count++;
+    const reason = page.error ?? "Unknown error";
+    reasons[reason] = (reasons[reason] || 0) + 1;
+  }
+
+  return { count, reasons };
+}
+
+export function formatExclusionBreakdown(summary: ExclusionSummary): string {
+  return Object.entries(summary.reasons)
+    .sort((a, b) => b[1] - a[1])
+    .map(([reason, n]) => `${n} ${reason}`)
+    .join(", ");
 }
 
 export function getResumeState(

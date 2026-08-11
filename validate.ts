@@ -148,7 +148,10 @@ export function validateCoverage(
       ? Math.round((fetchedPages / discoveredUrls.length) * 10000) / 100
       : 0;
 
-  const gaps = discoveredUrls.filter((u) => !fetchedSet.has(u));
+  const resultByUrl = new Map(pageResults.map((p) => [p.url, p]));
+  const gaps = discoveredUrls
+    .filter((u) => !fetchedSet.has(u))
+    .map((u) => ({ url: u, reason: resultByUrl.get(u)?.error ?? "not attempted" }));
 
   const report: CoverageReport = {
     discoveredUrls: discoveredUrls.length,
@@ -168,7 +171,10 @@ export function validateCoverage(
               10000,
           ) / 100
         : 100;
-    report.gaps = [...gaps, ...sitemapMissing.map((u) => `[sitemap] ${u}`)];
+    report.gaps = [
+      ...gaps,
+      ...sitemapMissing.map((u) => ({ url: u, reason: "in sitemap but excluded before fetch (maxPages, filter, or exclude-path)" })),
+    ];
   }
 
   return report;

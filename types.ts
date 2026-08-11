@@ -107,7 +107,7 @@ export interface CoverageReport {
   fetchPercent: number;
   sitemapUrls?: number;
   sitemapCoverage?: number;
-  gaps: string[];
+  gaps: Array<{ url: string; reason: string }>;
 }
 
 export interface RunManifest {
@@ -131,4 +131,9 @@ export interface QualitySummary {
   clean: number;
   cleanPct: number;
   flagCounts: Record<string, number>;
+}
+
+export interface ExclusionSummary {
+  count: number;
+  reasons: Record<string, number>;
 }

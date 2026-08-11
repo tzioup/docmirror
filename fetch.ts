@@ -436,7 +436,7 @@ export async function fetchPages(
         processPage(url).then(() => {
           running--;
           completed++;
-          process.stderr.write(`\r[fetch] ${completed}/${total} pages fetched...`);
+          process.stderr.write(`\r[fetch] ${completed}/${total} pages processed...`);
           if (queue.length === 0 && running === 0) {
             process.stderr.write("\n");
             resolve();
