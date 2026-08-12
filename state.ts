@@ -5,6 +5,7 @@ import type {
   PlatformDetection,
   DiscoveryMethod,
   QualitySummary,
+  ExclusionSummary,
 } from "./types.ts";
 import { join } from "node:path";
 import { existsSync, renameSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
@@ -16,6 +17,13 @@ export function initManifest(
   config: RunConfig,
   discoveryMethod: DiscoveryMethod,
   platform: PlatformDetection,
+  // When the run actually began. The manifest is built near the END of a run —
+  // it needs the page results and the platform detection, which do not exist
+  // until the crawl is done — so stamping "now" here recorded the moment the
+  // manifest was assembled, not the moment work started. `completedAt - startedAt`
+  // then measured manifest assembly: a 2085-page astro crawl that really took
+  // 12m14s reported 0.002s. Callers pass the timestamp they took on entry.
+  startedAt?: string,
 ): RunManifest {
   const { jinaApiKey, firecrawlApiKey, llmApiKey, llmBaseUrl, ...safeConfig } = config;
   const name =
@@ -25,7 +33,7 @@ export function initManifest(
     version: MANIFEST_VERSION,
     url: config.url,
     name,
-    startedAt: new Date().toISOString(),
+    startedAt: startedAt ?? new Date().toISOString(),
     discoveryMethod,
     platform,
     pages: [],
@@ -92,6 +100,27 @@ export function computeQualitySummary(manifest: RunManifest): QualitySummary {
     cleanPct: total > 0 ? Math.round((clean / total) * 1000) / 10 : 100,
     flagCounts,
   };
+}
+
+export function summarizeExclusions(pageResults: PageResult[]): ExclusionSummary {
+  const reasons: Record<string, number> = {};
+  let count = 0;
+
+  for (const page of pageResults) {
+    if (page.status === "ok") continue;
+    count++;
+    const reason = page.error ?? "Unknown error";
+    reasons[reason] = (reasons[reason] || 0) + 1;
+  }
+
+  return { count, reasons };
+}
+
+export function formatExclusionBreakdown(summary: ExclusionSummary): string {
+  return Object.entries(summary.reasons)
+    .sort((a, b) => b[1] - a[1])
+    .map(([reason, n]) => `${n} ${reason}`)
+    .join(", ");
 }
 
 export function getResumeState(

@@ -1,0 +1,415 @@
+{
+  "question_set_version": "1.0.1",
+  "summary": {
+    "cache": {
+      "n": 10,
+      "passed": 10,
+      "accuracy": 1,
+      "runner_errors": 0,
+      "total_cost_usd": 0.3573,
+      "median_cost_usd": 0.0371,
+      "total_duration_s": 67.9,
+      "median_duration_s": 7,
+      "total_turns": 28,
+      "total_web_calls": 0,
+      "calls_that_wrote_prompt_cache": 10,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    "frontdoor": {
+      "n": 10,
+      "passed": 10,
+      "accuracy": 1,
+      "runner_errors": 0,
+      "total_cost_usd": 1.0309,
+      "median_cost_usd": 0.11,
+      "total_duration_s": 175.1,
+      "median_duration_s": 17.8,
+      "total_turns": 43,
+      "total_web_calls": 0,
+      "calls_that_wrote_prompt_cache": 10,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    "memory": {
+      "n": 10,
+      "passed": 0,
+      "accuracy": 0,
+      "runner_errors": 0,
+      "total_cost_usd": 0.2429,
+      "median_cost_usd": 0.0244,
+      "total_duration_s": 20.8,
+      "median_duration_s": 1.9,
+      "total_turns": 10,
+      "total_web_calls": 0,
+      "calls_that_wrote_prompt_cache": 10,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    }
+  },
+  "per_question": [
+    {
+      "arm": "cache",
+      "question_id": "vitest-browser-api-port",
+      "pass": true,
+      "missing": [],
+      "duration_s": 4.4,
+      "cost_usd": 0.0358,
+      "turns": 2,
+      "web_calls": 0,
+      "answer": "The default port for `browser.api` is **63315**."
+    },
+    {
+      "arm": "cache",
+      "question_id": "vitest-browser-viewport",
+      "pass": true,
+      "missing": [],
+      "duration_s": 6.7,
+      "cost_usd": 0.0332,
+      "turns": 3,
+      "web_calls": 0,
+      "answer": "The default value of `browser.viewport` is `414x896` (i.e., `{ width: 414, height: 896 }`) — the default iframe's viewport."
+    },
+    {
+      "arm": "cache",
+      "question_id": "vitest-diff-maxdepth",
+      "pass": true,
+      "missing": [],
+      "duration_s": 6.1,
+      "cost_usd": 0.0373,
+      "turns": 3,
+      "web_calls": 0,
+      "answer": "The default for `diff.maxDepth` is **20**. A different default applies when comparing objects of different types — in that case it's **8**."
+    },
+    {
+      "arm": "cache",
+      "question_id": "vitest-maxconcurrency",
+      "pass": true,
+      "missing": [],
+      "duration_s": 6.9,
+      "cost_usd": 0.0397,
+      "turns": 3,
+      "web_calls": 0,
+      "answer": "Default: `5`. CLI flag: `--maxConcurrency=<number>` (also accepted as `--max-concurrency=<number>`), e.g. `--maxConcurrency=10`."
+    },
+    {
+      "arm": "cache",
+      "question_id": "vitest-advancetimedelta",
+      "pass": true,
+      "missing": [],
+      "duration_s": 7.1,
+      "cost_usd": 0.0331,
+      "turns": 3,
+      "web_calls": 0,
+      "answer": "Default is `20` (ms). It's only relevant when `fakeTimers.shouldAdvanceTime` is set to `true`."
+    },
+    {
+      "arm": "cache",
+      "question_id": "vitest-expect-poll",
+      "pass": true,
+      "missing": [],
+      "duration_s": 4.7,
+      "cost_usd": 0.0256,
+      "turns": 2,
+      "web_calls": 0,
+      "answer": "`expect.poll.interval` defaults to `50` ms, and `expect.poll.timeout` defaults to `1000` ms."
+    },
+    {
+      "arm": "cache",
+      "question_id": "hono-coep-default",
+      "pass": true,
+      "missing": [],
+      "duration_s": 8.2,
+      "cost_usd": 0.0394,
+      "turns": 3,
+      "web_calls": 0,
+      "answer": "`crossOriginEmbedderPolicy` sets the `Cross-Origin-Embedder-Policy` header to `require-corp`. It is **not** applied by default (Default: False)."
+    },
+    {
+      "arm": "cache",
+      "question_id": "hono-xframeoptions-default",
+      "pass": true,
+      "missing": [],
+      "duration_s": 9.2,
+      "cost_usd": 0.037,
+      "turns": 3,
+      "web_calls": 0,
+      "answer": "Default value: `SAMEORIGIN`. It's also settable to `DENY` (as shown in an example) or `false` to disable the header."
+    },
+    {
+      "arm": "cache",
+      "question_id": "bun-disable-bunfig-autoload",
+      "pass": true,
+      "missing": [],
+      "duration_s": 7.5,
+      "cost_usd": 0.038,
+      "turns": 3,
+      "web_calls": 0,
+      "answer": "**`--no-compile-autoload-bunfig`** Used with `bun build --compile`, e.g. `bun build --compile --no-compile-autoload-bunfig ./app.ts --outfile myapp`, to disable automatic `bunfig.toml` loading in the compiled executable."
+    },
+    {
+      "arm": "cache",
+      "question_id": "bun-standalone-runtime-flags-env",
+      "pass": true,
+      "missing": [],
+      "duration_s": 7.2,
+      "cost_usd": 0.0382,
+      "turns": 3,
+      "web_calls": 0,
+      "answer": "`BUN_OPTIONS` — standalone compiled executables read this environment variable to receive runtime flags without recompiling (docs also note `BUN_BE_BUN=1` separately, to make the executable act as the full `bun` CLI)."
+    },
+    {
+      "arm": "frontdoor",
+      "question_id": "vitest-browser-api-port",
+      "pass": true,
+      "missing": [],
+      "duration_s": 12.5,
+      "cost_usd": 0.1879,
+      "turns": 4,
+      "web_calls": 0,
+      "answer": "The default port for `browser.api` in Vitest is **63315**. Vitest assigns this port by default to avoid conflicts with the development server, allowing both to run in parallel. Sources: - [Vitest browser.api config](https://vitest.dev/confi"
+    },
+    {
+      "arm": "frontdoor",
+      "question_id": "vitest-browser-viewport",
+      "pass": true,
+      "missing": [],
+      "duration_s": 19.7,
+      "cost_usd": 0.1073,
+      "turns": 5,
+      "web_calls": 0,
+      "answer": "Default: `{ width: 414, height: 896 }`. Sources: - [browser.viewport | Config | Vitest](https://vitest.dev/config/browser/viewport)"
+    },
+    {
+      "arm": "frontdoor",
+      "question_id": "vitest-diff-maxdepth",
+      "pass": true,
+      "missing": [],
+      "duration_s": 12.9,
+      "cost_usd": 0.0717,
+      "turns": 4,
+      "web_calls": 0,
+      "answer": "**`diff.maxDepth`** default is **20** — but when comparing values of **different types**, the default is **8**. Sources: - [Vitest — diff.maxDepth](https://vitest.dev/config/diff)"
+    },
+    {
+      "arm": "frontdoor",
+      "question_id": "vitest-maxconcurrency",
+      "pass": true,
+      "missing": [],
+      "duration_s": 24.3,
+      "cost_usd": 0.1233,
+      "turns": 6,
+      "web_calls": 0,
+      "answer": "Default `maxConcurrency` is **5**, set via the CLI flag `--max-concurrency` (also accepted as `--maxConcurrency`). Sources: - [maxConcurrency | Config | Vitest](https://vitest.dev/config/maxconcurrency)"
+    },
+    {
+      "arm": "frontdoor",
+      "question_id": "vitest-advancetimedelta",
+      "pass": true,
+      "missing": [],
+      "duration_s": 15.9,
+      "cost_usd": 0.0747,
+      "turns": 4,
+      "web_calls": 0,
+      "answer": "`fakeTimers.advanceTimeDelta` defaults to `20` (ms). It's only relevant when `fakeTimers.shouldAdvanceTime` is set to `true` — it controls how much mocked time advances per real-time interval."
+    },
+    {
+      "arm": "frontdoor",
+      "question_id": "vitest-expect-poll",
+      "pass": true,
+      "missing": [],
+      "duration_s": 26.2,
+      "cost_usd": 0.1228,
+      "turns": 6,
+      "web_calls": 0,
+      "answer": "`expect.poll.interval` defaults to **50ms**, and `expect.poll.timeout` defaults to **1000ms**. Sources: - [expect | Config | Vitest](https://vitest.dev/config/expect)"
+    },
+    {
+      "arm": "frontdoor",
+      "question_id": "hono-coep-default",
+      "pass": true,
+      "missing": [],
+      "duration_s": 9,
+      "cost_usd": 0.0582,
+      "turns": 3,
+      "web_calls": 0,
+      "answer": "`crossOriginEmbedderPolicy` sets the header value `require-corp`. It is **not** applied by default (default: `false`). Sources: - [Secure Headers Middleware - Hono](https://hono.dev/docs/middleware/builtin/secure-headers)"
+    },
+    {
+      "arm": "frontdoor",
+      "question_id": "hono-xframeoptions-default",
+      "pass": true,
+      "missing": [],
+      "duration_s": 10.4,
+      "cost_usd": 0.0578,
+      "turns": 3,
+      "web_calls": 0,
+      "answer": "`xFrameOptions` sets the `X-Frame-Options` header to **`SAMEORIGIN`** (this is the default when the option is enabled). Sources: - [Secure Headers Middleware - Hono](https://hono.dev/docs/middleware/builtin/secure-headers)"
+    },
+    {
+      "arm": "frontdoor",
+      "question_id": "bun-disable-bunfig-autoload",
+      "pass": true,
+      "missing": [],
+      "duration_s": 24,
+      "cost_usd": 0.1147,
+      "turns": 4,
+      "web_calls": 0,
+      "answer": "The flag is **`--no-compile-autoload-bunfig`** (CLI), corresponding to `autoloadBunfig: false` in the `Bun.build()` JS API's `compile` options — it disables automatic `bunfig.toml` loading for `bun build --compile` standalone executables, e"
+    },
+    {
+      "arm": "frontdoor",
+      "question_id": "bun-standalone-runtime-flags-env",
+      "pass": true,
+      "missing": [],
+      "duration_s": 20.2,
+      "cost_usd": 0.1126,
+      "turns": 4,
+      "web_calls": 0,
+      "answer": "`BUN_OPTIONS` — standalone compiled executables read this environment variable to accept runtime flags (e.g., `BUN_OPTIONS=\"--smol\" ./myapp`) without recompiling. Sources: - [Single-file executable - Bun](https://bun.com/docs/bundler/execut"
+    },
+    {
+      "arm": "memory",
+      "question_id": "vitest-browser-api-port",
+      "pass": false,
+      "missing": [
+        "(?<![\\d.])63315(?![\\d.])"
+      ],
+      "duration_s": 2,
+      "cost_usd": 0.0242,
+      "turns": 1,
+      "web_calls": 0,
+      "answer": "NOT FOUND"
+    },
+    {
+      "arm": "memory",
+      "question_id": "vitest-browser-viewport",
+      "pass": false,
+      "missing": [
+        "(?<![\\d.])414(?![\\d.])",
+        "(?<![\\d.])896(?![\\d.])"
+      ],
+      "duration_s": 2.1,
+      "cost_usd": 0.0246,
+      "turns": 1,
+      "web_calls": 0,
+      "answer": "I have no tool access or documentation available in this session, so I cannot look this up. NOT FOUND"
+    },
+    {
+      "arm": "memory",
+      "question_id": "vitest-diff-maxdepth",
+      "pass": false,
+      "missing": [
+        "(?<![\\d.])20(?![\\d.])",
+        "(?<![\\d.])8(?![\\d.])",
+        "different\\s+type"
+      ],
+      "duration_s": 1.8,
+      "cost_usd": 0.0244,
+      "turns": 1,
+      "web_calls": 0,
+      "answer": "NOT FOUND"
+    },
+    {
+      "arm": "memory",
+      "question_id": "vitest-maxconcurrency",
+      "pass": false,
+      "missing": [
+        "(?<![\\d.])5(?![\\d.])",
+        "--max-?concurrency"
+      ],
+      "duration_s": 1.7,
+      "cost_usd": 0.0243,
+      "turns": 1,
+      "web_calls": 0,
+      "answer": "NOT FOUND"
+    },
+    {
+      "arm": "memory",
+      "question_id": "vitest-advancetimedelta",
+      "pass": false,
+      "missing": [
+        "(?<![\\d.])20(?![\\d.])",
+        "shouldAdvanceTime"
+      ],
+      "duration_s": 2.3,
+      "cost_usd": 0.025,
+      "turns": 1,
+      "web_calls": 0,
+      "answer": "I don't have documentation access in this session (no tools available), so I can't verify this against the actual Vitest docs. NOT FOUND"
+    },
+    {
+      "arm": "memory",
+      "question_id": "vitest-expect-poll",
+      "pass": false,
+      "missing": [
+        "(?<![\\d.])50(?![\\d.])",
+        "(?<![\\d.])1000(?![\\d.])"
+      ],
+      "duration_s": 1.9,
+      "cost_usd": 0.0244,
+      "turns": 1,
+      "web_calls": 0,
+      "answer": "NOT FOUND"
+    },
+    {
+      "arm": "memory",
+      "question_id": "hono-coep-default",
+      "pass": false,
+      "missing": [
+        "require-corp",
+        "\\b(false|not\\s+(applied|enabled|set|on)|disabled|off\\b|no\\b)"
+      ],
+      "duration_s": 1.9,
+      "cost_usd": 0.0237,
+      "turns": 1,
+      "web_calls": 0,
+      "answer": "NOT FOUND"
+    },
+    {
+      "arm": "memory",
+      "question_id": "hono-xframeoptions-default",
+      "pass": false,
+      "missing": [
+        "SAMEORIGIN"
+      ],
+      "duration_s": 3.5,
+      "cost_usd": 0.0244,
+      "turns": 1,
+      "web_calls": 0,
+      "answer": "NOT FOUND"
+    },
+    {
+      "arm": "memory",
+      "question_id": "bun-disable-bunfig-autoload",
+      "pass": false,
+      "missing": [
+        "--no-compile-autoload-bunfig"
+      ],
+      "duration_s": 1.7,
+      "cost_usd": 0.0236,
+      "turns": 1,
+      "web_calls": 0,
+      "answer": "NOT FOUND"
+    },
+    {
+      "arm": "memory",
+      "question_id": "bun-standalone-runtime-flags-env",
+      "pass": false,
+      "missing": [
+        "BUN_OPTIONS"
+      ],
+      "duration_s": 1.9,
+      "cost_usd": 0.0243,
+      "turns": 1,
+      "web_calls": 0,
+      "answer": "NOT FOUND"
+    }
+  ]
+}

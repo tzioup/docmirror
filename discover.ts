@@ -179,11 +179,24 @@ async function trySitemap(baseUrl: string, config: RunConfig): Promise<string[]>
   // hyphenated form was invisible to discovery. Measured: docs.astro.build
   // 404s on sitemap.xml and sitemap_index.xml, 200s on sitemap-index.xml, which
   // made the whole source fail with "no compiled output".
-  const candidates = [
-    `${base}/sitemap.xml`,
-    `${base}/sitemap_index.xml`,
-    `${base}/sitemap-index.xml`,
-  ];
+  // Probe the origin root as well as the source path. Sitemaps are conventionally
+  // published at the origin root, so a source given as a subpath — the normal way
+  // to point at a docs section — never reaches them path-relatively. Measured:
+  // docs.astro.build/en/ 404s on all three path-relative spellings and 200s on
+  // docs.astro.build/sitemap-index.xml, so the source discovered zero URLs and
+  // produced no output at all.
+  const roots = [base];
+  try {
+    const origin = new URL(baseUrl).origin;
+    if (origin !== base) roots.push(origin);
+  } catch {
+    // Non-absolute base; path-relative probing is all that is available.
+  }
+  const candidates = roots.flatMap((root) => [
+    `${root}/sitemap.xml`,
+    `${root}/sitemap_index.xml`,
+    `${root}/sitemap-index.xml`,
+  ]);
   log("Trying sitemap.xml...");
 
   for (const sitemapUrl of candidates) {

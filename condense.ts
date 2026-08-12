@@ -32,9 +32,15 @@ const SYSTEM_LEAK_PATTERN = /function calls using tools|invoke name=|parameter n
 
 const ANTHROPIC_DEFAULT_URL = "https://api.anthropic.com";
 
+// Aliases, not pinned snapshots. A date suffix has to be one the provider
+// actually publishes — `claude-sonnet-4-6-20250514` was a constructed id that
+// resolved to nothing, so `--condense-model sonnet` failed outright.
+// Consequence worth knowing: an alias silently follows the provider's current
+// snapshot, so the same flag can mean a different model month to month. That is
+// the main reason the condense results in the README are indicative only.
 const MODEL_SHORTCUTS: Record<string, string> = {
-  haiku: "claude-haiku-4-5-20251001",
-  sonnet: "claude-sonnet-4-6-20250514",
+  haiku: "claude-haiku-4-5",
+  sonnet: "claude-sonnet-4-6",
 };
 
 let cachedPrompt: string | null = null;

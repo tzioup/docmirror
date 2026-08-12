@@ -1,0 +1,126 @@
+{
+  "version": "1.0.1",
+  "frozen": "2026-07-28",
+  "rationale": "Every answer is a specific default value, flag name, or environment variable that appears in the tool's own documentation and is unlikely to be recalled reliably from model pretraining. Questions where a competent model already knows the answer measure nothing — both arms would score 100% and the comparison would be vacuous. Each key is a set of regexes that must all match the answer, chosen to be robust to formatting (a viewport can be written '414x896', '414 x 896', or 'width 414, height 896', so the key requires both numbers rather than one literal string).",
+  "questions": [
+    {
+      "id": "vitest-browser-api-port",
+      "corpus": "vitest",
+      "question": "In Vitest, what is the default port for the `browser.api` config option?",
+      "source": "/config/browser/api.md",
+      "all_of": [
+        "(?<![\\d.])63315(?![\\d.])"
+      ]
+    },
+    {
+      "id": "vitest-browser-viewport",
+      "corpus": "vitest",
+      "question": "In Vitest, what is the default value of the `browser.viewport` config option?",
+      "source": "/config/browser/viewport.md",
+      "all_of": [
+        "(?<![\\d.])414(?![\\d.])",
+        "(?<![\\d.])896(?![\\d.])"
+      ]
+    },
+    {
+      "id": "vitest-diff-maxdepth",
+      "corpus": "vitest",
+      "question": "In Vitest, what is the default value of `diff.maxDepth`, and is there a case where a different default applies? If so, what is it?",
+      "source": "/config/diff.md",
+      "all_of": [
+        "(?<![\\d.])20(?![\\d.])",
+        "(?<![\\d.])8(?![\\d.])",
+        "different\\s+type"
+      ]
+    },
+    {
+      "id": "vitest-maxconcurrency",
+      "corpus": "vitest",
+      "question": "In Vitest, what is the default value of the `maxConcurrency` option, and what is the CLI flag that sets it?",
+      "source": "/config/maxconcurrency.md",
+      "all_of": [
+        "(?<![\\d.])5(?![\\d.])",
+        "--max-?concurrency"
+      ]
+    },
+    {
+      "id": "vitest-advancetimedelta",
+      "corpus": "vitest",
+      "question": "In Vitest, what is the default value of `fakeTimers.advanceTimeDelta`, and which other fakeTimers option must be enabled for it to be relevant?",
+      "source": "/config/fake-timers.md",
+      "all_of": [
+        "(?<![\\d.])20(?![\\d.])",
+        "shouldAdvanceTime"
+      ]
+    },
+    {
+      "id": "vitest-expect-poll",
+      "corpus": "vitest",
+      "question": "In Vitest config, what are the default values of `expect.poll.interval` and `expect.poll.timeout`, in milliseconds?",
+      "source": "/config/expect.md",
+      "all_of": [
+        "(?<![\\d.])50(?![\\d.])",
+        "(?<![\\d.])1000(?![\\d.])"
+      ]
+    },
+    {
+      "id": "hono-coep-default",
+      "corpus": "hono",
+      "question": "In Hono's secure-headers middleware, what value does the `crossOriginEmbedderPolicy` option set, and is that header applied by default?",
+      "source": "/middleware/builtin/secure-headers",
+      "all_of": [
+        "require-corp",
+        "\\b(false|not\\s+(applied|enabled|set|on)|disabled|off\\b|no\\b)"
+      ]
+    },
+    {
+      "id": "hono-xframeoptions-default",
+      "corpus": "hono",
+      "question": "In Hono's secure-headers middleware, what value does the `xFrameOptions` option set for the X-Frame-Options header?",
+      "source": "/middleware/builtin/secure-headers",
+      "all_of": [
+        "SAMEORIGIN"
+      ]
+    },
+    {
+      "id": "bun-disable-bunfig-autoload",
+      "corpus": "bun",
+      "question": "In Bun, which build flag disables automatic `bunfig.toml` loading for a standalone compiled executable?",
+      "source": "/bundler/executables",
+      "all_of": [
+        "--no-compile-autoload-bunfig"
+      ]
+    },
+    {
+      "id": "bun-standalone-runtime-flags-env",
+      "corpus": "bun",
+      "question": "In Bun, which environment variable do standalone compiled executables read so runtime flags can be passed without recompiling?",
+      "source": "/bundler/executables",
+      "all_of": [
+        "BUN_OPTIONS"
+      ]
+    }
+  ],
+  "key_corrections": [
+    {
+      "date": "2026-07-28",
+      "change": "Numeric patterns changed from \\bN\\b to (?<![\\d.])N(?![\\d.]).",
+      "why": "\\b sits between two word characters in '50ms', so \\b50\\b cannot match a correct answer written without a space before the unit. This was not a calibration choice: it scored a correct front-door answer ('**50ms**') as wrong while passing the cache arm's correct answer ('`50` ms'), so the key was silently favouring one arm's phrasing. Uncorrected, the run would have reported the cache arm as more accurate than the live web off a single regex bug. Fixed after the first run, applied symmetrically, and both arms re-graded with the identical corrected key. Both score sets are in `scores` below and in evidence/METHODOLOGY.md; reproduce the pre-correction column by substituting \\bN\\b for each (?<![\\d.])N(?![\\d.]) pattern and re-running grade.ts over the unchanged raw records.",
+      "scores": {
+        "pre_correction": {
+          "cache": "10/10",
+          "frontdoor": "9/10",
+          "memory": "0/10"
+        },
+        "corrected": {
+          "cache": "10/10",
+          "frontdoor": "10/10",
+          "memory": "0/10"
+        },
+        "flipped": [
+          "frontdoor/vitest-expect-poll"
+        ]
+      }
+    }
+  ]
+}

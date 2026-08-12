@@ -1,0 +1,204 @@
+{
+  "question_set_version": "1.0.1",
+  "model_requested": "sonnet",
+  "records": [
+    {
+      "arm": "memory",
+      "question_id": "vitest-browser-api-port",
+      "corpus": "vitest",
+      "answer": "NOT FOUND",
+      "error": null,
+      "duration_ms": 1956,
+      "total_cost_usd": 0.0242259,
+      "num_turns": 1,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 2,
+      "output_tokens": 9,
+      "cache_creation_input_tokens": 2876,
+      "cache_read_input_tokens": 20503,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "memory",
+      "question_id": "vitest-browser-viewport",
+      "corpus": "vitest",
+      "answer": "I have no tool access or documentation available in this session, so I cannot look this up.\n\nNOT FOUND",
+      "error": null,
+      "duration_ms": 2088,
+      "total_cost_usd": 0.0246079,
+      "num_turns": 1,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 2,
+      "output_tokens": 34,
+      "cache_creation_input_tokens": 2878,
+      "cache_read_input_tokens": 20503,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "memory",
+      "question_id": "vitest-diff-maxdepth",
+      "corpus": "vitest",
+      "answer": "NOT FOUND",
+      "error": null,
+      "duration_ms": 1844,
+      "total_cost_usd": 0.024371900000000002,
+      "num_turns": 1,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 2,
+      "output_tokens": 9,
+      "cache_creation_input_tokens": 2896,
+      "cache_read_input_tokens": 20503,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "memory",
+      "question_id": "vitest-maxconcurrency",
+      "corpus": "vitest",
+      "answer": "NOT FOUND",
+      "error": null,
+      "duration_ms": 1738,
+      "total_cost_usd": 0.024346899999999998,
+      "num_turns": 1,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 2,
+      "output_tokens": 9,
+      "cache_creation_input_tokens": 2892,
+      "cache_read_input_tokens": 20503,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "memory",
+      "question_id": "vitest-advancetimedelta",
+      "corpus": "vitest",
+      "answer": "I don't have documentation access in this session (no tools available), so I can't verify this against the actual Vitest docs.\n\nNOT FOUND",
+      "error": null,
+      "duration_ms": 2342,
+      "total_cost_usd": 0.0250129,
+      "num_turns": 1,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 2,
+      "output_tokens": 45,
+      "cache_creation_input_tokens": 2908,
+      "cache_read_input_tokens": 20503,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "memory",
+      "question_id": "vitest-expect-poll",
+      "corpus": "vitest",
+      "answer": "NOT FOUND",
+      "error": null,
+      "duration_ms": 1907,
+      "total_cost_usd": 0.024362899999999996,
+      "num_turns": 1,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 2,
+      "output_tokens": 9,
+      "cache_creation_input_tokens": 2897,
+      "cache_read_input_tokens": 20503,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "memory",
+      "question_id": "hono-coep-default",
+      "corpus": "hono",
+      "answer": "NOT FOUND",
+      "error": null,
+      "duration_ms": 1864,
+      "total_cost_usd": 0.0236919,
+      "num_turns": 1,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 2,
+      "output_tokens": 9,
+      "cache_creation_input_tokens": 2900,
+      "cache_read_input_tokens": 20503,
+      "models_used": [
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "memory",
+      "question_id": "hono-xframeoptions-default",
+      "corpus": "hono",
+      "answer": "NOT FOUND",
+      "error": null,
+      "duration_ms": 3523,
+      "total_cost_usd": 0.0243709,
+      "num_turns": 1,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 2,
+      "output_tokens": 9,
+      "cache_creation_input_tokens": 2895,
+      "cache_read_input_tokens": 20503,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "memory",
+      "question_id": "bun-disable-bunfig-autoload",
+      "corpus": "bun",
+      "answer": "NOT FOUND",
+      "error": null,
+      "duration_ms": 1693,
+      "total_cost_usd": 0.0236319,
+      "num_turns": 1,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 2,
+      "output_tokens": 9,
+      "cache_creation_input_tokens": 2890,
+      "cache_read_input_tokens": 20503,
+      "models_used": [
+        "claude-sonnet-5"
+      ]
+    },
+    {
+      "arm": "memory",
+      "question_id": "bun-standalone-runtime-flags-env",
+      "corpus": "bun",
+      "answer": "NOT FOUND",
+      "error": null,
+      "duration_ms": 1857,
+      "total_cost_usd": 0.024309900000000002,
+      "num_turns": 1,
+      "web_fetches": 0,
+      "web_searches": 0,
+      "input_tokens": 2,
+      "output_tokens": 9,
+      "cache_creation_input_tokens": 2890,
+      "cache_read_input_tokens": 20503,
+      "models_used": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ]
+    }
+  ]
+}
