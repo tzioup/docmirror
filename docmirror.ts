@@ -140,6 +140,7 @@ async function mirrorCommand(url: string, opts: Record<string, unknown>): Promis
     saveManifest(manifest, outputDir);
 
     log(`Done. Output: ${outputDir}/`);
+    log(`Run details: bun ${process.argv[1]} inspect ${outputDir}`);
     console.log(JSON.stringify({
       outputDir,
       pages: 1,
@@ -292,6 +293,7 @@ async function mirrorCommand(url: string, opts: Record<string, unknown>): Promis
   const quality = manifest.qualitySummary!;
   log(`Done. ${successCount}/${discovery.urls.length} discovered URLs became pages (${exclusions.count} excluded, see above) → ~${tokenEstimate} tokens.`);
   log(`Quality: ${quality.clean}/${quality.total} clean (${quality.cleanPct}%) — this grades the ${successCount} pages that were fetched, not the ${discovery.urls.length} URLs discovered. Output: ${outputDir}/`);
+  log(`Run details (per-page status, exclusion reasons, timing): bun ${process.argv[1]} inspect ${outputDir}`);
   console.log(
     JSON.stringify(
       {
@@ -444,6 +446,7 @@ async function resumeCommand(dir: string): Promise<void> {
     log(`Excluded: ${formatExclusionBreakdown(exclusions)}`);
   }
   log(`Quality: ${quality.clean}/${quality.total} clean (${quality.cleanPct}%) — this grades the ${total} pages that were fetched, not the ${manifest.pages.length} URLs tracked.`);
+  log(`Run details (per-page status, exclusion reasons, timing): bun ${process.argv[1]} inspect ${dir}`);
   console.log(JSON.stringify({
     dir,
     resumedPages: newPageResults.length,
