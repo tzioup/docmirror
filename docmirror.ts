@@ -7,10 +7,10 @@ import { discover } from "./discover.ts";
 import { fetchPages } from "./fetch.ts";
 import { detectPlatform } from "./detect.ts";
 import { stripPages } from "./strip.ts";
-import { validate } from "./validate.ts";
+import { validate, validateResumedRun } from "./validate.ts";
 import { compile, estimateTokens } from "./compile.ts";
 import { postcompile } from "./postcompile.ts";
-import { initManifest, addPageResult, saveManifest, loadManifest, getResumeState, computeQualitySummary, summarizeExclusions, formatExclusionBreakdown } from "./state.ts";
+import { initManifest, addPageResult, saveManifest, loadManifest, getResumeState, computeQualitySummary, summarizeExclusions, formatExclusionBreakdown, captureDiscovery } from "./state.ts";
 import { smartPrune } from "./smart.ts";
 import { condensePages } from "./condense.ts";
 import type { RunConfig } from "./types.ts";
@@ -101,6 +101,7 @@ async function mirrorCommand(url: string, opts: Record<string, unknown>): Promis
 
     const platform = detectPlatform([discovery.fullContent], url);
     const manifest = initManifest(config, discovery.method, platform, runStartedAt);
+    manifest.discovery = captureDiscovery(discovery);
     addPageResult(manifest, {
       url: `${url}llms-full.txt`,
       status: "ok",
@@ -114,7 +115,13 @@ async function mirrorCommand(url: string, opts: Record<string, unknown>): Promis
     const rawPages = new Map([["llms-full", discovery.fullContent]]);
     const cleanPages = new Map([["llms-full", discovery.fullContent]]);
 
-    const validation = validate(rawPages, cleanPages, [url], manifest.pages, discovery.sitemapUrls, outputDir);
+    // fullContent: one artifact holds the whole corpus, so a sitemap cross-ref
+    // must not become the fetch denominator — see CoverageInputs.fullContent.
+    const validation = validate(rawPages, cleanPages, [url], manifest.pages, {
+      sitemapUrls: discovery.sitemapUrls,
+      fullContent: true,
+      outputDir,
+    });
     // Fidelity is not applicable — single-file fast path, no stripping performed
     validation.fidelity = {
       totalPages: 1,
@@ -223,10 +230,15 @@ async function mirrorCommand(url: string, opts: Record<string, unknown>): Promis
   }
 
   // Validate — use pagesForCompile (the actual shipped artifact) for cleanliness, rawPages for fidelity baseline
-  const validation = validate(rawPages, pagesForCompile, discovery.urls, pageResults, discovery.sitemapUrls, outputDir);
+  const validation = validate(rawPages, pagesForCompile, discovery.urls, pageResults, {
+    sitemapUrls: discovery.sitemapUrls,
+    unfollowedUrls: discovery.unfollowedUrls,
+    outputDir,
+  });
 
   // Build manifest — attach per-page flags
   const manifest = initManifest(config, discovery.method, platform, runStartedAt);
+  manifest.discovery = captureDiscovery(discovery);
   for (const result of pageResults) {
     if (result.status === "ok" && result.rawPath) {
       const slug = result.rawPath.replace("pages/", "").replace(".md", "");
@@ -317,7 +329,10 @@ async function mirrorCommand(url: string, opts: Record<string, unknown>): Promis
         } : undefined,
         cleanliness: `${validation.cleanliness.flaggedPercent.toFixed(1)}% flagged`,
         fidelity: `${validation.fidelity.overStripped} over-stripped`,
-        coverage: `${validation.coverage.fetchPercent.toFixed(1)}% of discovered URLs fetched`,
+        // fetchPercent is now against everything discovery observed, not just
+        // what survived into `discovery.urls` — the label has to say so, or the
+        // number reads as the old fetch-stage ratio.
+        coverage: `${validation.coverage.fetchPercent.toFixed(1)}% of ${validation.coverage.observedUrls} observed URLs fetched (${validation.coverage.fetchOfDiscoveredPercent.toFixed(1)}% of the ${validation.coverage.discoveredUrls} discovery kept)`,
         sitemapCoverage: validation.coverage.sitemapCoverage !== undefined
           ? `${validation.coverage.sitemapCoverage.toFixed(1)}% of sitemap URLs covered`
           : undefined,
@@ -419,9 +434,9 @@ async function resumeCommand(dir: string): Promise<void> {
     }
   }
 
-  // Validate
-  const discoveredUrls = manifest.pages.map((p) => p.url);
-  const validation = validate(rawPages, cleanPages, discoveredUrls, manifest.pages, undefined, dir);
+  // Validate — reads the persisted discovery snapshot, so sitemapCoverage
+  // survives resume instead of vanishing on the runs that already failed once.
+  const validation = validateResumedRun(manifest, rawPages, cleanPages, dir);
   manifest.validation = validation;
 
   // Compile + postcompile
@@ -495,7 +510,7 @@ async function inspectCommand(dir: string): Promise<void> {
           ? {
               cleanliness: `${manifest.validation.cleanliness.flaggedPercent.toFixed(1)}% flagged`,
               fidelity: `${manifest.validation.fidelity.overStripped} over-stripped`,
-              coverage: `${manifest.validation.coverage.fetchPercent.toFixed(1)}% fetched`,
+              coverage: `${manifest.validation.coverage.fetchPercent.toFixed(1)}% of observed URLs fetched`,
             }
           : null,
       },

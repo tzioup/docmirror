@@ -24,8 +24,18 @@ export interface DiscoveryResult {
   method: DiscoveryMethod;
   fullContent?: string;
   sitemapUrls?: string[];
+  /** True whenever any rung declined to explore something it saw — not only on cascade fall-through. */
   partial?: boolean;
+  /** Links a rung retained but never followed for their own links (e.g. the link-crawl frontier cap). Their subtrees are undiscovered. */
+  unfollowedUrls?: string[];
   metadata: Record<string, string>;
+}
+
+/** What discovery saw and declined, persisted in run.json so `resume` keeps the same denominator. */
+export interface DiscoverySnapshot {
+  partial: boolean;
+  sitemapUrls?: string[];
+  unfollowedUrls?: string[];
 }
 
 export type DiscoveryMethod =
@@ -103,10 +113,17 @@ export interface FidelityReport {
 
 export interface CoverageReport {
   discoveredUrls: number;
+  /** Widest denominator any discovery rung observed: discovered ∪ sitemap ∪ unfollowed. */
+  observedUrls: number;
   fetchedPages: number;
+  /** fetchedPages / observedUrls — drops when discovery lost pages, unlike fetchOfDiscoveredPercent. */
   fetchPercent: number;
+  /** fetchedPages / discoveredUrls — the fetch-stage number only ("did I fetch what I found?"). */
+  fetchOfDiscoveredPercent: number;
   sitemapUrls?: number;
   sitemapCoverage?: number;
+  /** Links seen but never followed for their own links; their subtrees are absent from the mirror. */
+  unfollowedUrls?: number;
   gaps: Array<{ url: string; reason: string }>;
 }
 
@@ -117,6 +134,7 @@ export interface RunManifest {
   startedAt: string;
   completedAt?: string;
   discoveryMethod: DiscoveryMethod;
+  discovery?: DiscoverySnapshot;
   platform: PlatformDetection;
   pages: PageResult[];
   validation?: ValidationReport;

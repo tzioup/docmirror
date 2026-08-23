@@ -247,18 +247,39 @@ async function parseSitemapXml(
   return urls;
 }
 
-async function tryLinkCrawl(baseUrl: string, config: RunConfig): Promise<string[]> {
+/** Depth-1 crawl fan-out cap. Links past it are kept, but never opened for their own links. */
+export const LINK_CRAWL_FRONTIER_CAP = 50;
+
+/**
+ * Split root links into the ones we open for their own links and the ones we
+ * merely keep. Everything below an unfollowed link is invisible to the run, so
+ * a non-empty `unfollowed` is what makes a link-crawl result partial.
+ */
+export function splitFrontier(
+  filtered: string[],
+  cap: number = LINK_CRAWL_FRONTIER_CAP,
+): { toFollow: string[]; unfollowed: string[] } {
+  return { toFollow: filtered.slice(0, cap), unfollowed: filtered.slice(cap) };
+}
+
+export interface LinkCrawlResult {
+  urls: string[];
+  /** Root links retained in `urls` but never opened — their subtrees are undiscovered. */
+  unfollowed: string[];
+}
+
+async function tryLinkCrawl(baseUrl: string, config: RunConfig): Promise<LinkCrawlResult> {
   log("Trying link crawl from root...");
   try {
     const res = await timedFetch(baseUrl);
-    if (!res.ok) return [];
+    if (!res.ok) return { urls: [], unfollowed: [] };
     const html = await res.text();
     const rootLinks = extractLinks(html, baseUrl);
     const filtered = filterUrls(rootLinks, baseUrl, config);
 
     // Follow one level deep
     const deepLinks: string[] = [...filtered];
-    const toFollow = filtered.slice(0, 50); // Cap depth-1 crawl to avoid runaway
+    const { toFollow, unfollowed } = splitFrontier(filtered);
     const results = await Promise.allSettled(
       toFollow.map(async (link) => {
         try {
@@ -279,10 +300,16 @@ async function tryLinkCrawl(baseUrl: string, config: RunConfig): Promise<string[
     }
 
     const allFiltered = filterUrls(deepLinks, baseUrl, config);
-    log(`Found ${allFiltered.length} URLs via link crawl`);
-    return allFiltered;
+    if (unfollowed.length > 0) {
+      log(
+        `Found ${allFiltered.length} URLs via link crawl — frontier cap of ${LINK_CRAWL_FRONTIER_CAP} bit: ${unfollowed.length} root links kept but never opened, so their subtrees are undiscovered`,
+      );
+    } else {
+      log(`Found ${allFiltered.length} URLs via link crawl`);
+    }
+    return { urls: allFiltered, unfollowed };
   } catch {
-    return [];
+    return { urls: [], unfollowed: [] };
   }
 }
 
@@ -434,14 +461,32 @@ export async function discover(baseUrl: string, config: RunConfig): Promise<Disc
 
   // Stage 4: link crawl
   stagesAttempted++;
-  const crawlUrls = await tryLinkCrawl(baseUrl, config);
+  const crawl = await tryLinkCrawl(baseUrl, config);
+  const crawlUrls = crawl.urls;
+  // The frontier cap is a cap that actually bit. `partial` used to be set only
+  // on cascade fall-through, so a link crawl that *succeeded* while silently
+  // abandoning every subtree past link 50 reported itself complete (issue #1).
+  const frontierCapped = crawl.unfollowed.length > 0;
   if (crawlUrls.length >= SUFFICIENCY_THRESHOLD) {
     // Cross-reference: sitemap was already probed at stage 3, reuse if non-empty
     return {
       urls: crawlUrls,
       method: "link-crawl",
       sitemapUrls: sitemapUrls.length > 0 ? sitemapUrls : undefined,
-      metadata: { stagesAttempted: String(stagesAttempted), method: "link-crawl" },
+      partial: frontierCapped ? true : undefined,
+      unfollowedUrls: frontierCapped ? crawl.unfollowed : undefined,
+      metadata: {
+        stagesAttempted: String(stagesAttempted),
+        method: "link-crawl",
+        ...(frontierCapped
+          ? {
+              partial: "true",
+              partialReason: "link-crawl-frontier-cap",
+              frontierCap: String(LINK_CRAWL_FRONTIER_CAP),
+              unfollowed: String(crawl.unfollowed.length),
+            }
+          : {}),
+      },
     };
   }
 
@@ -479,6 +524,14 @@ export async function discover(baseUrl: string, config: RunConfig): Promise<Disc
     method: bestMethod,
     partial: true,
     sitemapUrls: sitemapUrls.length > 0 ? sitemapUrls : undefined,
-    metadata: { stagesAttempted: String(stagesAttempted), method: bestMethod, partial: "true" },
+    unfollowedUrls: frontierCapped && bestMethod === "link-crawl" ? crawl.unfollowed : undefined,
+    metadata: {
+      stagesAttempted: String(stagesAttempted),
+      method: bestMethod,
+      partial: "true",
+      partialReason: frontierCapped && bestMethod === "link-crawl"
+        ? "cascade-exhausted+link-crawl-frontier-cap"
+        : "cascade-exhausted",
+    },
   };
 }

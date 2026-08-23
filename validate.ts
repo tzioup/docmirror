@@ -4,6 +4,7 @@ import type {
   CoverageReport,
   ValidationReport,
   PageResult,
+  RunManifest,
 } from "./types.ts";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -134,19 +135,69 @@ export function validateFidelity(
   };
 }
 
+function pct(numerator: number, denominator: number): number {
+  return denominator > 0 ? Math.round((numerator / denominator) * 10000) / 100 : 0;
+}
+
+/**
+ * What discovery saw, beyond what survived into `discoveredUrls`.
+ *
+ * Passed as an object rather than a positional tail: the fast path needs to opt
+ * out of the union denominator entirely, and a fifth positional boolean next to
+ * two optional string arrays is a footgun.
+ */
+export interface CoverageInputs {
+  /** URLs an external sitemap listed, whether or not discovery kept them. */
+  sitemapUrls?: string[];
+  /** URLs a rung retained but never followed for their own links (frontier cap). */
+  unfollowedUrls?: string[];
+  /**
+   * The whole corpus arrived as a single artifact (`/llms-full.txt`), so URL
+   * counts are not the coverage denominator. Without this, a fast-path run that
+   * correctly captured everything in one file would union in a 500-entry sitemap
+   * cross-reference and report ~0.2% — trading the old false 100% for a false
+   * alarm on the tool's best path.
+   */
+  fullContent?: boolean;
+}
+
+/**
+ * Coverage against the widest denominator any discovery rung observed.
+ *
+ * `fetchPercent` used to divide by `discoveredUrls.length`, so any loss during
+ * discovery shrank numerator and denominator together and a mirror missing
+ * 440 of 500 pages still reported 100% (issue #1). The denominator is now the
+ * union of what every rung saw — discovered, sitemap entries, and links that
+ * were retained but never followed — so discovery loss lowers the number.
+ * The old fetch-stage ratio survives as `fetchOfDiscoveredPercent`.
+ *
+ * Note on the frontier cap specifically: unfollowed URLs are *retained* in the
+ * crawl output, so they are already inside `discoveredUrls` and the union does
+ * not move for them. What the cap actually loses is their subtrees, whose size
+ * is unknowable. The honest signal there is `discovery.partial` plus the
+ * `unfollowedUrls` count, not a bigger denominator.
+ */
 export function validateCoverage(
   discoveredUrls: string[],
   pageResults: PageResult[],
-  sitemapUrls?: string[],
+  inputs: CoverageInputs = {},
 ): CoverageReport {
+  const { sitemapUrls, unfollowedUrls, fullContent } = inputs;
+
   const fetchedSet = new Set(
     pageResults.filter((p) => p.status === "ok").map((p) => p.url),
   );
   const fetchedPages = fetchedSet.size;
-  const fetchPercent =
-    discoveredUrls.length > 0
-      ? Math.round((fetchedPages / discoveredUrls.length) * 10000) / 100
-      : 0;
+
+  const observed = new Set(discoveredUrls);
+  if (!fullContent) {
+    for (const u of sitemapUrls ?? []) observed.add(u);
+    for (const u of unfollowedUrls ?? []) observed.add(u);
+  }
+  const observedUrls = observed.size;
+
+  const fetchPercent = pct(fetchedPages, observedUrls);
+  const fetchOfDiscoveredPercent = pct(fetchedPages, discoveredUrls.length);
 
   const resultByUrl = new Map(pageResults.map((p) => [p.url, p]));
   const gaps = discoveredUrls
@@ -155,10 +206,16 @@ export function validateCoverage(
 
   const report: CoverageReport = {
     discoveredUrls: discoveredUrls.length,
+    observedUrls,
     fetchedPages,
     fetchPercent,
+    fetchOfDiscoveredPercent,
     gaps,
   };
+
+  if (unfollowedUrls && unfollowedUrls.length > 0) {
+    report.unfollowedUrls = unfollowedUrls.length;
+  }
 
   if (sitemapUrls) {
     const discoveredSet = new Set(discoveredUrls);
@@ -180,17 +237,21 @@ export function validateCoverage(
   return report;
 }
 
+export interface ValidateOptions extends CoverageInputs {
+  outputDir?: string;
+}
+
 export function validate(
   rawPages: Map<string, string>,
   cleanPages: Map<string, string>,
   discoveredUrls: string[],
   pageResults: PageResult[],
-  sitemapUrls?: string[],
-  outputDir?: string,
+  options: ValidateOptions = {},
 ): ValidationReport {
+  const { outputDir, ...coverageInputs } = options;
   const cleanliness = validateCleanliness(cleanPages);
   const fidelity = validateFidelity(rawPages, cleanPages);
-  const coverage = validateCoverage(discoveredUrls, pageResults, sitemapUrls);
+  const coverage = validateCoverage(discoveredUrls, pageResults, coverageInputs);
 
   if (outputDir) {
     const reportsDir = join(outputDir, "reports");
@@ -210,4 +271,27 @@ export function validate(
   }
 
   return { cleanliness, fidelity, coverage };
+}
+
+/**
+ * Validation for a resumed run.
+ *
+ * `resume` used to call `validate(..., undefined, dir)` — passing no sitemap at
+ * all — so `coverage.sitemapCoverage` vanished on exactly the runs that had
+ * already failed once and most needed the independent cross-check (issue #1).
+ * The sitemap list is now persisted on the manifest at mirror time, and this
+ * reads it back, so the cross-check survives the round trip.
+ */
+export function validateResumedRun(
+  manifest: RunManifest,
+  rawPages: Map<string, string>,
+  cleanPages: Map<string, string>,
+  outputDir?: string,
+): ValidationReport {
+  const discoveredUrls = manifest.pages.map((p) => p.url);
+  return validate(rawPages, cleanPages, discoveredUrls, manifest.pages, {
+    sitemapUrls: manifest.discovery?.sitemapUrls,
+    unfollowedUrls: manifest.discovery?.unfollowedUrls,
+    outputDir,
+  });
 }

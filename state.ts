@@ -4,6 +4,8 @@ import type {
   PageResult,
   PlatformDetection,
   DiscoveryMethod,
+  DiscoveryResult,
+  DiscoverySnapshot,
   QualitySummary,
   ExclusionSummary,
 } from "./types.ts";
@@ -39,6 +41,25 @@ export function initManifest(
     pages: [],
     config: safeConfig,
   };
+}
+
+/**
+ * Freeze what discovery saw into the manifest.
+ *
+ * `resume` rebuilds its world from `run.json` alone. Everything discovery
+ * observed but did not fetch — the sitemap cross-reference above all — used to
+ * exist only in memory during the mirror run, so a resumed run lost the one
+ * genuinely independent coverage cross-check (issue #1). Persist it.
+ */
+export function captureDiscovery(discovery: DiscoveryResult): DiscoverySnapshot {
+  const snapshot: DiscoverySnapshot = { partial: discovery.partial ?? false };
+  if (discovery.sitemapUrls && discovery.sitemapUrls.length > 0) {
+    snapshot.sitemapUrls = discovery.sitemapUrls;
+  }
+  if (discovery.unfollowedUrls && discovery.unfollowedUrls.length > 0) {
+    snapshot.unfollowedUrls = discovery.unfollowedUrls;
+  }
+  return snapshot;
 }
 
 export function updateManifest(

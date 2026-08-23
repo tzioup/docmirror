@@ -9,7 +9,8 @@
   "scripts": {
     "start": "bun run docmirror.ts",
     "help": "bun run docmirror.ts --help",
-    "check": "bun run --bun tsc --noEmit"
+    "check": "bun run --bun tsc --noEmit",
+    "test": "bun test"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
